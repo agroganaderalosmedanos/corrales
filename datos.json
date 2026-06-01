@@ -7,6 +7,14 @@
       "cant": 185,
       "kg": 388,
       "precio": 4500
+    },
+    {
+      "id": "mpuj3caxf33llmsusb",
+      "cid": 1,
+      "fecha": "2026-06-01",
+      "cant": 10,
+      "kg": 25,
+      "precio": 5000
     }
   ],
   "ventas": [
