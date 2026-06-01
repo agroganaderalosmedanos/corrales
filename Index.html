@@ -1,0 +1,1351 @@
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Corrales — Agroganadera Los Médanos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #ffffff; --bg2: #f7f7f5; --bg3: #f0eeea;
+  --text: #1a1a18; --text2: #6b6b67; --text3: #9b9b97;
+  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+  --green: #1D9E75; --green-dark: #0F6E56; --green-darker: #085041;
+  --green-bg: #E1F5EE; --green-text: #085041;
+  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-text: #0C447C;
+  --red: #E24B4A; --red-bg: #FCEBEB; --red-text: #791F1F;
+  --teal-bg: #E1F5EE; --teal-text: #0F6E56;
+  --navy: #0F3D2E; --navy-text: #9FE1CB;
+  --radius: 8px; --radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #242422;
+    --text: #f0efe8; --text2: #a0a09a; --text3: #6a6a65;
+    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+    --green-bg: #0a2e20; --green-text: #5DCAA5;
+    --blue-bg: #0d2540; --blue-text: #85B7EB;
+    --red-bg: #2d1010; --red-text: #F09595;
+    --teal-bg: #0a2e20; --teal-text: #5DCAA5;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
+.shell { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+
+.app-header { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.app-brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon { width: 42px; height: 42px; background: var(--green-dark); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; }
+.brand-name { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+.brand-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+
+.sidenav { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 8px; margin-bottom: 16px; display: flex; gap: 4px; flex-wrap: wrap; }
+.snav { padding: 8px 14px; border-radius: var(--radius); cursor: pointer; font-size: 13px; background: transparent; color: var(--text2); transition: all .15s; display: flex; align-items: center; gap: 6px; border: none; font-family: inherit; }
+.snav:hover { background: var(--bg2); color: var(--text); }
+.snav.active { background: var(--navy); color: var(--navy-text); font-weight: 500; }
+
+.corral-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.ctab { padding: 8px 16px; border: 0.5px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 500; background: var(--bg); color: var(--text2); transition: all .15s; font-family: inherit; }
+.ctab:hover { border-color: var(--border2); color: var(--text); }
+.ctab.active { background: var(--navy); color: var(--navy-text); border-color: var(--navy); }
+.ctab .stk { font-size: 11px; opacity: .7; margin-left: 4px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 18px; }
+.kpi { background: var(--bg); padding: 16px 18px; }
+.kpi-icon { font-size: 20px; margin-bottom: 6px; }
+.kpi-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px; }
+.kpi-val { font-size: 21px; font-weight: 600; letter-spacing: -.5px; line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.kpi-pos { color: var(--green); }
+.kpi-neg { color: var(--red); }
+
+.tw { overflow-x: auto; border: 0.5px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; background: var(--bg); }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; padding: 9px 12px; font-size: 11px; font-weight: 500; color: var(--text2); border-bottom: 0.5px solid var(--border); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; background: var(--bg2); }
+.data-table th.thc, .data-table td.tdc { text-align: center; border-left: 0.5px solid var(--border); }
+.data-table td { padding: 9px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--bg2); }
+.total-row td { background: var(--bg2) !important; font-weight: 600; }
+.cell-pair { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+.cell-peso { font-size: 13px; font-weight: 500; }
+.cell-cant { font-size: 11px; color: var(--text2); }
+
+.panel { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 16px; }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 16px; }
+.panel-title { font-size: 13px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+.corral-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.corral-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+.corral-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 0.5px solid var(--border); gap: 8px; }
+.corral-card-name { font-size: 13px; font-weight: 500; line-height: 1.3; }
+.corral-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cc-item-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
+.cc-item-val { font-size: 14px; font-weight: 500; }
+
+.fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.fg { display: flex; flex-direction: column; gap: 4px; }
+.fg label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; font-weight: 500; }
+.fg input, .fg select { padding: 8px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; outline: none; transition: border-color .15s, box-shadow .15s; }
+.fg input:focus, .fg select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,.12); }
+
+.btn { padding: 9px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; border: none; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
+.btn-primary { background: var(--green); color: #fff; }
+.btn-primary:hover { background: var(--green-dark); }
+.btn-save { background: var(--green); color: #fff; padding: 7px 14px; font-size: 13px; }
+.btn-save:hover { background: var(--green-dark); }
+.btn-cancel { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border2); padding: 7px 14px; font-size: 13px; }
+.btn-cancel:hover { background: var(--bg3); }
+.btn-export { background: var(--navy); color: var(--navy-text); }
+.btn-export:hover { background: var(--green-darker); }
+.btn-save-manual { background: var(--green); color: #fff; }
+.btn-save-manual:hover { background: var(--green-dark); }
+.btn-import { background: var(--bg); color: var(--text2); border: 0.5px solid var(--border2); cursor: pointer; }
+.btn-import:hover { background: var(--bg2); color: var(--text); }
+.btn-gh-config { background: var(--bg); color: var(--text2); border: 0.5px solid var(--border2); }
+.btn-gh-config:hover { background: var(--bg2); color: var(--text); }
+.btn-del { background: transparent; border: 0.5px solid var(--border); color: var(--text3); padding: 4px 9px; font-size: 12px; border-radius: var(--radius); cursor: pointer; font-family: inherit; transition: all .15s; }
+.btn-del:hover { background: var(--red-bg); color: var(--red-text); border-color: #F09595; }
+.btn-edit { background: transparent; border: 0.5px solid var(--border); color: var(--text3); padding: 4px 9px; font-size: 12px; border-radius: var(--radius); cursor: pointer; font-family: inherit; transition: all .15s; margin-right: 4px; }
+.btn-edit:hover { background: var(--blue-bg); color: var(--blue-text); border-color: #85B7EB; }
+.td-actions { white-space: nowrap; }
+
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.pill-green { background: var(--green-bg); color: var(--green-text); }
+.pill-red { background: var(--red-bg); color: var(--red-text); }
+.pill-blue { background: var(--blue-bg); color: var(--blue-text); }
+.pill-teal { background: var(--teal-bg); color: var(--teal-text); }
+
+.alert { padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.alert-r { background: var(--red-bg); color: var(--red-text); border: 0.5px solid #F09595; }
+.alert-g { background: var(--green-bg); color: var(--green-text); border: 0.5px solid #5DCAA5; }
+
+.section-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; }
+.stock-info { background: var(--green-bg); border: 0.5px solid #5DCAA5; border-radius: var(--radius); padding: 9px 13px; font-size: 13px; color: var(--green-text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.chart-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px; }
+.empty { text-align: center; padding: 36px; color: var(--text3); font-size: 13px; }
+.empty-icon { font-size: 36px; display: block; margin-bottom: 8px; opacity: .4; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.modal {
+  background: var(--bg); border: 0.5px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 24px;
+  width: 100%; max-width: 560px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 0.5px solid var(--border);
+}
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text3); line-height: 1; padding: 2px 6px; border-radius: var(--radius); }
+.modal-close:hover { background: var(--bg2); color: var(--text); }
+.modal-body .fgrid { margin-bottom: 0; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 14px; border-top: 0.5px solid var(--border); }
+.modal-info { background: var(--green-bg); border: 0.5px solid #5DCAA5; border-radius: var(--radius); padding: 8px 12px; font-size: 12px; color: var(--green-text); margin-bottom: 14px; }
+
+/* Row highlight when editing */
+tr.editing td { background: var(--blue-bg) !important; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div id="root"><div class="app-header">
+    <div class="app-brand">
+      <div class="brand-icon">🐄</div>
+      <div><div class="brand-name">Agroganadera Los Médanos</div><div class="brand-sub">Gestión de corrales de engorde</div></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-export" id="btn-export">📊 Exportar Excel</button>
+      <button class="btn btn-save-manual" id="btn-save-manual">💾 Guardar datos</button>
+      <label class="btn btn-import">📂 Importar<input type="file" id="btn-import-file" accept=".json" style="display:none"></label>
+    </div>
+  </div>
+  <div class="sidenav"><button class="snav active" data-page="dashboard">📊 Panel</button><button class="snav " data-page="ingresos">📥 Ingresos</button><button class="snav " data-page="consumos">🌿 Alimentación</button><button class="snav " data-page="ventas">💰 Ventas</button><button class="snav " data-page="costos">🧮 Costos</button><button class="snav " data-page="graficos">📈 Gráficos</button></div><div class="kpi-grid" style="margin-bottom:1px">
+    <div class="kpi"><div class="kpi-icon">🐄</div><div class="kpi-label">Stock total</div><div class="kpi-val">0</div><div class="kpi-sub">animales en corrales</div></div>
+    <div class="kpi"><div class="kpi-icon">💵</div><div class="kpi-label">Ingreso por ventas</div><div class="kpi-val">$ 416.735.000</div></div>
+    <div class="kpi"><div class="kpi-icon">🛒</div><div class="kpi-label">Costo de compra</div><div class="kpi-val">$ 323.010.000</div></div>
+    <div class="kpi"><div class="kpi-icon">🌿</div><div class="kpi-label">Costo de alimentación</div><div class="kpi-val">$ 19.013.000</div></div>
+  </div><div class="kpi-grid" style="margin-bottom:18px">
+    <div class="kpi" style="border-top:2px solid var(--green)">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-label">Utilidad neta</div>
+      <div class="kpi-val kpi-pos">$ 74.712.000</div>
+      <div class="kpi-sub">✓ Ganancia</div>
+    </div>
+    <div class="kpi"><div class="kpi-icon">⚖️</div><div class="kpi-label">Kg vendidos</div><div class="kpi-val">91.950</div><div class="kpi-sub">kg totales egresados</div></div>
+    <div class="kpi"><div class="kpi-icon">📥</div><div class="kpi-label">Kg ingresados</div><div class="kpi-val">71.780</div><div class="kpi-sub">kg al entrar al corral</div></div>
+    <div class="kpi" style="border-top:2px solid var(--green)"><div class="kpi-icon">📊</div><div class="kpi-label">Kg ganados</div><div class="kpi-val kpi-pos">20.170</div><div class="kpi-sub">109 kg / animal vendido</div></div>
+  </div><div class="corral-summary-grid"><div class="corral-card">
+      <div class="corral-card-header">
+        <div class="corral-card-name">🏚️ Corral 1 El Cencerro</div>
+        <span class="pill pill-green">$ 74.712.000</span>
+      </div>
+      <div class="corral-card-body">
+        <div><div class="cc-item-label">Stock</div><div class="cc-item-val">0 cab.</div></div>
+        <div><div class="cc-item-label">Vendidos</div><div class="cc-item-val">185 cab.</div></div>
+        <div><div class="cc-item-label">Ingreso venta</div><div class="cc-item-val" style="font-size:13px">$ 416.735.000</div></div>
+        <div><div class="cc-item-label">Costo compra</div><div class="cc-item-val" style="font-size:13px">$ 323.010.000</div></div>
+        <div><div class="cc-item-label">Costo alim.</div><div class="cc-item-val" style="font-size:13px">$ 19.013.000</div></div>
+        <div><div class="cc-item-label">Kg ganados</div><div class="cc-item-val" style="font-size:13px;color:var(--green)">20.170 kg</div></div>
+      </div>
+      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div class="cc-item-label">Kg ingresados</div><div style="font-size:12px;font-weight:500">71.780 kg</div></div>
+        <div><div class="cc-item-label">Kg vendidos</div><div style="font-size:12px;font-weight:500">91.950 kg</div></div>
+      </div>
+    </div><div class="corral-card">
+      <div class="corral-card-header">
+        <div class="corral-card-name">🏚️ Corral 1 El Misterio</div>
+        <span class="pill pill-green">$ 0</span>
+      </div>
+      <div class="corral-card-body">
+        <div><div class="cc-item-label">Stock</div><div class="cc-item-val">0 cab.</div></div>
+        <div><div class="cc-item-label">Vendidos</div><div class="cc-item-val">0 cab.</div></div>
+        <div><div class="cc-item-label">Ingreso venta</div><div class="cc-item-val" style="font-size:13px">$ 0</div></div>
+        <div><div class="cc-item-label">Costo compra</div><div class="cc-item-val" style="font-size:13px">$ 0</div></div>
+        <div><div class="cc-item-label">Costo alim.</div><div class="cc-item-val" style="font-size:13px">$ 0</div></div>
+        <div><div class="cc-item-label">Kg ganados</div><div class="cc-item-val" style="font-size:13px;color:var(--green)">0 kg</div></div>
+      </div>
+      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div class="cc-item-label">Kg ingresados</div><div style="font-size:12px;font-weight:500">0 kg</div></div>
+        <div><div class="cc-item-label">Kg vendidos</div><div style="font-size:12px;font-weight:500">0 kg</div></div>
+      </div>
+    </div><div class="corral-card">
+      <div class="corral-card-header">
+        <div class="corral-card-name">🏚️ Corral 2 El Misterio</div>
+        <span class="pill pill-green">$ 0</span>
+      </div>
+      <div class="corral-card-body">
+        <div><div class="cc-item-label">Stock</div><div class="cc-item-val">0 cab.</div></div>
+        <div><div class="cc-item-label">Vendidos</div><div class="cc-item-val">0 cab.</div></div>
+        <div><div class="cc-item-label">Ingreso venta</div><div class="cc-item-val" style="font-size:13px">$ 0</div></div>
+        <div><div class="cc-item-label">Costo compra</div><div class="cc-item-val" style="font-size:13px">$ 0</div></div>
+        <div><div class="cc-item-label">Costo alim.</div><div class="cc-item-val" style="font-size:13px">$ 0</div></div>
+        <div><div class="cc-item-label">Kg ganados</div><div class="cc-item-val" style="font-size:13px;color:var(--green)">0 kg</div></div>
+      </div>
+      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div class="cc-item-label">Kg ingresados</div><div style="font-size:12px;font-weight:500">0 kg</div></div>
+        <div><div class="cc-item-label">Kg vendidos</div><div style="font-size:12px;font-weight:500">0 kg</div></div>
+      </div>
+    </div></div><div class="section-label">Distribución del costo de alimentación</div>
+  <div class="tw"><table class="data-table"><thead><tr>
+    <th>Alimento</th><th class="thc">Corral 1 El Cencerro</th><th class="thc">Corral 1 El Misterio</th><th class="thc">Corral 2 El Misterio</th>
+    <th class="thc">Total</th><th class="thc">%</th>
+  </tr></thead><tbody><tr><td><span class="pill pill-teal">🌽 Maíz</span></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 11.592.000</span><span class="cell-cant">69.000 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 11.592.000</span><span class="cell-cant">69.000 kg</span></div></td><td class="tdc">61.0%</td></tr><tr><td><span class="pill pill-teal">🌾 Rollos</span></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 4.400.000</span><span class="cell-cant">44 rollos</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 rollos</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 rollos</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 4.400.000</span><span class="cell-cant">44 rollos</span></div></td><td class="tdc">23.1%</td></tr><tr><td><span class="pill pill-teal">📦 Concentrado</span></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 3.021.000</span><span class="cell-cant">5.700 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 3.021.000</span><span class="cell-cant">5.700 kg</span></div></td><td class="tdc">15.9%</td></tr><tr><td><span class="pill pill-teal">🌿 Pasturas</span></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc"><div class="cell-pair"><span class="cell-peso">$ 0</span><span class="cell-cant">0 kg</span></div></td><td class="tdc">0.0%</td></tr><tr class="total-row"><td><strong>Total</strong></td><td class="tdc"><strong>$ 19.013.000</strong></td><td class="tdc"><strong>$ 0</strong></td><td class="tdc"><strong>$ 0</strong></td><td class="tdc"><strong>$ 19.013.000</strong></td><td class="tdc">100%</td></tr></tbody></table></div></div>
+  <div id="modal-container"></div>
+</div>
+
+<script>
+const CORRALES = [
+  { id: 1, nombre: 'Corral 1 El Cencerro' },
+  { id: 2, nombre: 'Corral 1 El Misterio' },
+  { id: 3, nombre: 'Corral 2 El Misterio' }
+];
+const ALIMENTOS = [
+  { key: 'maiz',        label: 'Maíz',        unidad: 'kg',     icon: '🌽' },
+  { key: 'rollos',      label: 'Rollos',      unidad: 'rollos', icon: '🌾' },
+  { key: 'concentrado', label: 'Concentrado', unidad: 'kg',     icon: '📦' },
+  { key: 'pasturas',    label: 'Pasturas',    unidad: 'kg',     icon: '🌿' }
+];
+
+let S = { ingresos: [], ventas: [], consumos: [], page: 'dashboard', corral: 1, alert: null };
+let chartInst = null, chartInst2 = null;
+
+function gid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function today() { return new Date().toISOString().slice(0, 10); }
+function fd(d) { if (!d) return '—'; const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; }
+function fn(n, dec=2) { if (n == null || isNaN(n)) return '—'; return Number(n).toLocaleString('es-AR', { maximumFractionDigits: dec }); }
+function fp(n) { if (n == null || isNaN(n)) return '—'; return '$ ' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 }); }
+function pct(a, b) { if (!b) return '—'; return (a / b * 100).toFixed(1) + '%'; }
+
+function stockAt(cid, f) {
+  return S.ingresos.filter(i => i.cid === cid && i.fecha <= f).reduce((s,i) => s + Number(i.cant), 0)
+       - S.ventas.filter(v => v.cid === cid && v.fecha <= f).reduce((s,v) => s + Number(v.cant), 0);
+}
+function stockNow(cid) { return stockAt(cid, '9999-12-31'); }
+function totIng(cid)   { return S.ingresos.filter(i => i.cid === cid).reduce((s,i) => s + Number(i.cant), 0); }
+function costoAlim(cid){ return S.consumos.filter(c => c.cid === cid).reduce((s,c) => s + Number(c.cant)*Number(c.precio), 0); }
+function costoCompra(cid){ return S.ingresos.filter(i => i.cid === cid).reduce((s,i) => s + Number(i.cant)*Number(i.kg)*Number(i.precio), 0); }
+function ingVentas(cid){ return S.ventas.filter(v => v.cid === cid).reduce((s,v) => s + Number(v.cant)*Number(v.kg)*Number(v.precio), 0); }
+function kgVend(cid)   { return S.ventas.filter(v => v.cid === cid).reduce((s,v) => s + Number(v.cant)*Number(v.kg), 0); }
+function cantAlim(cid, tipo) { return S.consumos.filter(c => c.cid === cid && c.tipo === tipo).reduce((s,c) => s + Number(c.cant), 0); }
+// Kilos totales ingresados al corral (suma cant*kg de cada lote)
+function kgIngresados(cid) { return S.ingresos.filter(i => i.cid === cid).reduce((s,i) => s + Number(i.cant)*Number(i.kg), 0); }
+// Kilos de los animales vendidos al momento de ingreso (kg base de los vendidos)
+// = kgIngresados * (vendidos / ingresados) — estimación proporcional por lote
+function kgBaseVendidos(cid) {
+  // Calculo exacto por lote usando FIFO-promedio simple
+  const totalIng = totIng(cid);
+  if (!totalIng) return 0;
+  const kgProm = kgIngresados(cid) / totalIng;
+  const vendidos = totalIng - stockNow(cid);
+  return kgProm * vendidos;
+}
+// Kilos ganados = kg vendidos - kg base de esos animales al entrar
+function kgGanados(cid) { return Math.max(0, kgVend(cid) - kgBaseVendidos(cid)); }
+
+function setAlert(msg, type='r') {
+  S.alert = { msg, type };
+  setTimeout(() => { S.alert = null; render(); }, 3500);
+}
+
+function save() {
+  try { localStorage.setItem('corrales_data', JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos })); } catch(e) {}
+}
+
+// ========== GITHUB STORAGE ==========
+const GH = {
+  repo:  'agroganaderalosmedanos/corrales',
+  file:  'datos.json',
+  branch: 'main',
+  get token() { return localStorage.getItem('gh_token') || ''; },
+  set token(v) { localStorage.setItem('gh_token', v); }
+};
+
+async function ghLoad() {
+  if (!GH.token) return false;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH.repo}/contents/${GH.file}?ref=${GH.branch}&t=${Date.now()}`, {
+      headers: { Authorization: `token ${GH.token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) return false;
+    const meta = await r.json();
+    const d = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+    S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[];
+    localStorage.setItem('gh_sha', meta.sha);
+    return true;
+  } catch(e) { return false; }
+}
+
+async function ghSave() {
+  if (!GH.token) return false;
+  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos }, null, 2);
+  const content = btoa(unescape(encodeURIComponent(data)));
+  const sha = localStorage.getItem('gh_sha') || undefined;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH.repo}/contents/${GH.file}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${GH.token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Actualizacion de datos', content, sha, branch: GH.branch })
+    });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message); }
+    const res = await r.json();
+    localStorage.setItem('gh_sha', res.content.sha);
+    return true;
+  } catch(e) { console.error('ghSave error:', e); return false; }
+}
+
+function openTokenModal() {
+  const current = GH.token ? 'x'.repeat(8) + GH.token.slice(-4) : '';
+  document.getElementById('modal-container').innerHTML = `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">&#128273; Configurar guardado en GitHub</div>
+        <button class="modal-close" id="mc">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info" style="margin-bottom:12px">
+          Los datos se guardaran en <strong>${GH.repo}</strong> como <code>${GH.file}</code> y estaran disponibles desde cualquier dispositivo.
+        </div>
+        <div class="fgrid" style="grid-template-columns:1fr">
+          <div class="fg">
+            <label>Personal Access Token de GitHub</label>
+            <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" value="${GH.token}" style="font-family:monospace">
+            <div style="font-size:11px;color:var(--text2);margin-top:6px">
+              Generalo en: <strong>github.com > Settings > Developer settings > Personal access tokens > Tokens (classic)</strong><br>
+              Permisos necesarios: <code>repo</code> (tilda solo ese checkbox)
+            </div>
+          </div>
+        </div>
+        ${current ? '<div style="font-size:12px;color:var(--green);margin-top:8px">Token guardado: ' + current + '</div>' : ''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="mc2">Cancelar</button>
+        ${GH.token ? '<button class="btn" id="gh-test" style="background:var(--bg2)">Cargar datos ahora</button>' : ''}
+        <button class="btn btn-save" id="gh-save-token">Guardar token</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mc').onclick = closeModal;
+  document.getElementById('mc2').onclick = closeModal;
+  document.getElementById('modal-overlay').onclick = function(e) { if (e.target.id==='modal-overlay') closeModal(); };
+  document.getElementById('gh-save-token').onclick = async function() {
+    const t = document.getElementById('gh-token-input').value.trim();
+    if (!t) { alert('Ingresa el token'); return; }
+    GH.token = t;
+    closeModal();
+    setAlert('Conectando con GitHub...', 'g');
+    const ok = await ghLoad();
+    if (ok) { setAlert('Conectado a GitHub. Datos cargados correctamente.', 'g'); render(); }
+    else { setAlert('Token guardado. Si es la primera vez, los datos se crearan al guardar.', 'g'); }
+  };
+  const testBtn = document.getElementById('gh-test');
+  if (testBtn) testBtn.onclick = async function() {
+    closeModal();
+    setAlert('Cargando datos desde GitHub...', 'g');
+    const ok = await ghLoad();
+    if (ok) { setAlert('Datos cargados desde GitHub.', 'g'); render(); }
+    else setAlert('No se pudo cargar. Verifica el token.', 'r');
+  };
+}
+
+function getHtmlContentRaw() {
+  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos });
+
+  // Limpiamos #root antes de capturar el outerHTML (evita guardar DOM renderizado)
+  const rootEl = document.getElementById('root');
+  const savedRoot = rootEl.innerHTML;
+  rootEl.innerHTML = '';
+  let html = document.documentElement.outerHTML;
+  rootEl.innerHTML = savedRoot;
+
+  // Reemplaza el bloque INIT completo (datos + render) con datos frescos
+  html = html.replace(
+    /\/\/ INIT\ntry\{const _d=[\s\S]*?render\(\);\n<\/script>/,
+    `// INIT\ntry{const _d=${data};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;}catch(e){loadData();}\nrender();\n<\/script>`
+  );
+  return html;
+}
+function loadData() {
+  try {
+    const r = localStorage.getItem('corrales_data');
+    if (r) { const d = JSON.parse(r); S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; }
+  } catch(e) {}
+}
+
+// ========== MODAL SYSTEM ==========
+function closeModal() {
+  document.getElementById('modal-container').innerHTML = '';
+}
+
+function openEditIngreso(id) {
+  const item = S.ingresos.find(i => i.id === id);
+  if (!item) return;
+  const corralNombre = CORRALES.find(c => c.id === item.cid)?.nombre || '';
+  document.getElementById('modal-container').innerHTML = `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ Editar ingreso</div>
+        <button class="modal-close" id="mc">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info">📍 ${corralNombre}</div>
+        <div class="fgrid">
+          <div class="fg"><label>Fecha de ingreso</label><input type="date" id="me-fecha" value="${item.fecha}"></div>
+          <div class="fg"><label>Cantidad de animales</label><input type="number" id="me-cant" value="${item.cant}" min="1"></div>
+          <div class="fg"><label>Kilos promedio / animal</label><input type="number" id="me-kg" value="${item.kg}" min="1"></div>
+          <div class="fg"><label>Precio por kg ($)</label><input type="number" id="me-precio" value="${item.precio}" min="0"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="mc2">Cancelar</button>
+        <button class="btn btn-save" id="me-save">✓ Guardar cambios</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mc').onclick = closeModal;
+  document.getElementById('mc2').onclick = closeModal;
+  document.getElementById('modal-overlay').onclick = e => { if (e.target.id === 'modal-overlay') closeModal(); };
+  document.getElementById('me-save').onclick = () => {
+    const f = document.getElementById('me-fecha').value;
+    const c = Number(document.getElementById('me-cant').value);
+    const k = Number(document.getElementById('me-kg').value);
+    const p = Number(document.getElementById('me-precio').value);
+    if (!f || c < 1 || k < 1 || p < 0) { alert('Completá todos los campos correctamente.'); return; }
+    // Validate: after edit, no venta should exceed stock
+    const oldItem = S.ingresos.find(i => i.id === id);
+    const tempIngresos = S.ingresos.map(i => i.id === id ? {...i, fecha: f, cant: c, kg: k, precio: p} : i);
+    const tempS = {...S, ingresos: tempIngresos};
+    // Check all ventas still valid
+    let ok = true;
+    S.ventas.filter(v => v.cid === item.cid).forEach(v => {
+      const ing = tempIngresos.filter(i => i.cid === item.cid && i.fecha <= v.fecha).reduce((s,i)=>s+Number(i.cant),0);
+      const ven = S.ventas.filter(x => x.cid === item.cid && x.fecha <= v.fecha).reduce((s,x)=>s+Number(x.cant),0);
+      if (ven > ing) ok = false;
+    });
+    if (!ok) { alert('No se puede hacer este cambio: quedarían ventas registradas que superan el stock disponible.'); return; }
+    S.ingresos = S.ingresos.map(i => i.id === id ? { ...i, fecha: f, cant: c, kg: k, precio: p } : i);
+    save(); closeModal(); setAlert('Ingreso actualizado correctamente.', 'g'); render();
+  };
+}
+
+function openEditConsumo(id) {
+  const item = S.consumos.find(c => c.id === id);
+  if (!item) return;
+  const corralNombre = CORRALES.find(c => c.id === item.cid)?.nombre || '';
+  const stk = stockAt(item.cid, item.fecha);
+  document.getElementById('modal-container').innerHTML = `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ Editar consumo de alimento</div>
+        <button class="modal-close" id="mc">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info">📍 ${corralNombre} · Stock en esa fecha: <strong>${fn(stk, 0)} animales</strong></div>
+        <div class="fgrid">
+          <div class="fg"><label>Fecha</label><input type="date" id="me-fecha" value="${item.fecha}"></div>
+          <div class="fg"><label>Alimento</label>
+            <select id="me-tipo">${ALIMENTOS.map(a => `<option value="${a.key}" ${a.key === item.tipo ? 'selected' : ''}>${a.icon} ${a.label} (${a.unidad})</option>`).join('')}</select>
+          </div>
+          <div class="fg"><label>Cantidad</label><input type="number" id="me-cant" value="${item.cant}" min="0.01" step="0.01"></div>
+          <div class="fg"><label>Precio unitario ($)</label><input type="number" id="me-precio" value="${item.precio}" min="0" step="0.01"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="mc2">Cancelar</button>
+        <button class="btn btn-save" id="me-save">✓ Guardar cambios</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mc').onclick = closeModal;
+  document.getElementById('mc2').onclick = closeModal;
+  document.getElementById('modal-overlay').onclick = e => { if (e.target.id === 'modal-overlay') closeModal(); };
+  document.getElementById('me-fecha').onchange = () => {
+    const newF = document.getElementById('me-fecha').value;
+    const newStk = stockAt(item.cid, newF);
+    document.querySelector('.modal-info').innerHTML = `📍 ${corralNombre} · Stock en esa fecha: <strong>${fn(newStk, 0)} animales</strong>`;
+  };
+  document.getElementById('me-save').onclick = () => {
+    const f = document.getElementById('me-fecha').value;
+    const t = document.getElementById('me-tipo').value;
+    const c = Number(document.getElementById('me-cant').value);
+    const p = Number(document.getElementById('me-precio').value);
+    if (!f || c <= 0 || p < 0) { alert('Completá todos los campos correctamente.'); return; }
+    const newStk = stockAt(item.cid, f);
+    if (newStk <= 0) { alert('No hay animales en el corral en esa fecha.'); return; }
+    S.consumos = S.consumos.map(c2 => c2.id === id ? { ...c2, fecha: f, tipo: t, cant: c, precio: p } : c2);
+    save(); closeModal(); setAlert('Consumo actualizado correctamente.', 'g'); render();
+  };
+}
+
+function openEditVenta(id) {
+  const item = S.ventas.find(v => v.id === id);
+  if (!item) return;
+  const corralNombre = CORRALES.find(c => c.id === item.cid)?.nombre || '';
+  // Stock disponible en esa fecha EXCLUYENDO esta venta
+  const stk = stockAt(item.cid, item.fecha) + Number(item.cant);
+  document.getElementById('modal-container').innerHTML = `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ Editar venta</div>
+        <button class="modal-close" id="mc">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info">📍 ${corralNombre} · Stock disponible (sin esta venta): <strong>${fn(stk, 0)} animales</strong></div>
+        <div class="fgrid">
+          <div class="fg"><label>Fecha de venta</label><input type="date" id="me-fecha" value="${item.fecha}"></div>
+          <div class="fg"><label>Cantidad vendida</label><input type="number" id="me-cant" value="${item.cant}" min="1"></div>
+          <div class="fg"><label>Kilos prom. al vender</label><input type="number" id="me-kg" value="${item.kg}" min="1"></div>
+          <div class="fg"><label>Precio por kg ($)</label><input type="number" id="me-precio" value="${item.precio}" min="0"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="mc2">Cancelar</button>
+        <button class="btn btn-save" id="me-save">✓ Guardar cambios</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mc').onclick = closeModal;
+  document.getElementById('mc2').onclick = closeModal;
+  document.getElementById('modal-overlay').onclick = e => { if (e.target.id === 'modal-overlay') closeModal(); };
+  document.getElementById('me-fecha').onchange = () => {
+    const newF = document.getElementById('me-fecha').value;
+    // stock at new date excluding this venta
+    const tempVentas = S.ventas.filter(v => v.id !== id);
+    const ingF = S.ingresos.filter(i => i.cid === item.cid && i.fecha <= newF).reduce((s,i)=>s+Number(i.cant),0);
+    const venF = tempVentas.filter(v => v.cid === item.cid && v.fecha <= newF).reduce((s,v)=>s+Number(v.cant),0);
+    const newStk = ingF - venF;
+    document.querySelector('.modal-info').innerHTML = `📍 ${corralNombre} · Stock disponible en esa fecha: <strong>${fn(newStk, 0)} animales</strong>`;
+  };
+  document.getElementById('me-save').onclick = () => {
+    const f = document.getElementById('me-fecha').value;
+    const c = Number(document.getElementById('me-cant').value);
+    const k = Number(document.getElementById('me-kg').value);
+    const p = Number(document.getElementById('me-precio').value);
+    if (!f || c < 1 || k < 1 || p < 0) { alert('Completá todos los campos correctamente.'); return; }
+    // Validate stock: exclude this venta, then check
+    const tempVentas = S.ventas.filter(v => v.id !== id);
+    const ingF = S.ingresos.filter(i => i.cid === item.cid && i.fecha <= f).reduce((s,i)=>s+Number(i.cant),0);
+    const venF = tempVentas.filter(v => v.cid === item.cid && v.fecha <= f).reduce((s,v)=>s+Number(v.cant),0);
+    const available = ingF - venF;
+    if (c > available) { alert(`No podés vender ${c} animales. En esa fecha hay ${available} disponibles.`); return; }
+    S.ventas = S.ventas.map(v => v.id === id ? { ...v, fecha: f, cant: c, kg: k, precio: p } : v);
+    save(); closeModal(); setAlert('Venta actualizada correctamente.', 'g'); render();
+  };
+}
+
+// ========== FILE SYSTEM ACCESS API — guardar en carpeta elegida ==========
+async function guardarDatos() {
+  save(); // localStorage
+  if (!GH.token) {
+    openTokenModal();
+    return;
+  }
+  setAlert('Guardando en GitHub...', 'g');
+  const ok = await ghSave();
+  if (ok) setAlert('Datos guardados en GitHub correctamente.', 'g');
+  else setAlert('Error al guardar en GitHub. Verifica tu token en Configuracion.', 'r');
+}
+function exportarExcel() {
+  // Generamos un .xls con HTML interno — una sola pestaña con colores reales
+
+  const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fnum = (n, dec=0) => isNaN(n)||n==null ? '' : Number(n).toLocaleString('es-AR',{maximumFractionDigits:dec});
+  const fpeso = n => isNaN(n)||n==null ? '' : '$ '+Number(n).toLocaleString('es-AR',{maximumFractionDigits:0});
+
+  const css = `<style>
+    body{font-family:Calibri,Arial,sans-serif;font-size:11pt}
+    table{border-collapse:collapse;margin-bottom:20pt}
+    td,th{border:1px solid #CCCCCC;padding:4px 10px;vertical-align:middle;white-space:nowrap}
+    .titulo   {background:#0F3D2E;color:#fff;font-size:14pt;font-weight:bold;padding:10px 14px}
+    .subtitulo{background:#0F3D2E;color:#9FE1CB;font-size:11pt;font-weight:bold;padding:6px 14px}
+    .sec-g    {background:#1D9E75;color:#fff;font-weight:bold;font-size:10pt;padding:5px 10px}
+    .sec-b    {background:#185FA5;color:#fff;font-weight:bold;font-size:10pt;padding:5px 10px}
+    .sec-a    {background:#854F0B;color:#fff;font-weight:bold;font-size:10pt;padding:5px 10px}
+    .sec-n    {background:#0F3D2E;color:#fff;font-weight:bold;font-size:10pt;padding:5px 10px}
+    .hg{background:#1D9E75;color:#fff;font-weight:bold;text-align:center}
+    .hb{background:#185FA5;color:#fff;font-weight:bold;text-align:center}
+    .ha{background:#854F0B;color:#fff;font-weight:bold;text-align:center}
+    .hn{background:#0F3D2E;color:#fff;font-weight:bold;text-align:center}
+    .alt{background:#F7F7F5}
+    .tot{background:#D8F5EC;font-weight:bold}
+    .tot-n{background:#FCEBEB;font-weight:bold;color:#791F1F}
+    .kgg{background:#E1F5EE;color:#085041;font-weight:bold}
+    .pos{background:#E1F5EE;color:#085041;font-weight:bold;text-align:right}
+    .neg{background:#FCEBEB;color:#791F1F;font-weight:bold;text-align:right}
+    .lbl{background:#F0EEEA;font-weight:bold}
+    .r{text-align:right} .c{text-align:center}
+    .sep td{border:none;height:10px}
+  </style>`;
+
+  let h = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+    xmlns:x="urn:schemas-microsoft-com:office:excel"
+    xmlns="http://www.w3.org/TR/REC-html40">
+  <head><meta charset="UTF-8">${css}</head><body>`;
+
+  // ── helper ──────────────────────────────────────────────────────────────
+  const sep = n => `<tr class="sep">${'<td></td>'.repeat(n)}</tr>`;
+  const blk = () => h += `<tr class="sep"><td colspan="20" style="border:none;height:16px"></td></tr>`;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TABLA 1 — RESUMEN GENERAL
+  // ══════════════════════════════════════════════════════════════════════════
+  h += `<table>`;
+  h += `<tr><td colspan="11" class="titulo">AGROGANADERA LOS MÉDANOS — Resumen de corrales &nbsp;&nbsp; ${fd(today())}</td></tr>`;
+  h += `<tr><td colspan="11" style="border:none;height:8px"></td></tr>`;
+  h += `<tr>
+    <th class="hn">Corral</th><th class="hn">Ingresados</th><th class="hn">Stock actual</th>
+    <th class="hn">Vendidos</th><th class="hn">Kg ingresados</th><th class="hn">Kg vendidos</th>
+    <th class="hn">Kg ganados</th><th class="hn">Costo compra</th><th class="hn">Costo alim.</th>
+    <th class="hn">Ingreso ventas</th><th class="hn">Utilidad</th>
+  </tr>`;
+
+  let tCab=0,tStk=0,tVnd=0,tKgI=0,tKgV=0,tKgG=0,tCC=0,tCA=0,tIV=0;
+  CORRALES.forEach((cor,ri) => {
+    const ing=totIng(cor.id),stk=stockNow(cor.id),vend=ing-stk;
+    const cc=costoCompra(cor.id),ca=costoAlim(cor.id),iv=ingVentas(cor.id),util=iv-cc-ca;
+    const kgi=kgIngresados(cor.id),kgv=kgVend(cor.id),kgg=kgGanados(cor.id);
+    tCab+=ing;tStk+=stk;tVnd+=vend;tKgI+=kgi;tKgV+=kgv;tKgG+=kgg;tCC+=cc;tCA+=ca;tIV+=iv;
+    const a=ri%2===1?' class="alt"':'';
+    const uc=util>=0?'pos':'neg';
+    h+=`<tr><td${a}><b>${esc(cor.nombre)}</b></td>
+      <td${a} class="c">${fnum(ing)}</td><td${a} class="c">${fnum(stk)}</td><td${a} class="c">${fnum(vend)}</td>
+      <td${a} class="r">${fnum(kgi)} kg</td><td${a} class="r">${fnum(kgv)} kg</td>
+      <td class="kgg r">${fnum(kgg)} kg</td>
+      <td${a} class="r">${fpeso(cc)}</td><td${a} class="r">${fpeso(ca)}</td><td${a} class="r">${fpeso(iv)}</td>
+      <td class="${uc}">${fpeso(util)}</td></tr>`;
+  });
+  const tUtil=tIV-tCC-tCA;
+  h+=`<tr><td class="tot"><b>TOTALES</b></td>
+    <td class="tot c">${fnum(tCab)}</td><td class="tot c">${fnum(tStk)}</td><td class="tot c">${fnum(tVnd)}</td>
+    <td class="tot r">${fnum(tKgI)} kg</td><td class="tot r">${fnum(tKgV)} kg</td>
+    <td class="kgg r">${fnum(tKgG)} kg</td>
+    <td class="tot r">${fpeso(tCC)}</td><td class="tot r">${fpeso(tCA)}</td><td class="tot r">${fpeso(tIV)}</td>
+    <td class="${tUtil>=0?'pos':'neg'}">${fpeso(tUtil)}</td></tr>`;
+  h+=`</table>`;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TABLA 2 — DISTRIBUCIÓN ALIMENTACIÓN
+  // ══════════════════════════════════════════════════════════════════════════
+  h+=`<table><tr><td colspan="${3+CORRALES.length*2}" class="subtitulo">Distribución del costo de alimentación</td></tr>`;
+  h+=`<tr><th class="hn">Alimento</th>`;
+  CORRALES.forEach(c=>h+=`<th class="hn">${esc(c.nombre)} ($)</th><th class="hn">${esc(c.nombre)} (cant)</th>`);
+  h+=`<th class="hn">Total $</th><th class="hn">Total cant</th><th class="hn">%</th></tr>`;
+
+  const grandTotalAlim = CORRALES.reduce((s,c)=>s+costoAlim(c.id),0);
+  ALIMENTOS.forEach((a,ri) => {
+    const alt=ri%2===1?' class="alt"':'';
+    let rowTot=0, rowCant=0;
+    h+=`<tr><td${alt}>${a.icon} ${a.label}</td>`;
+    CORRALES.forEach(c=>{
+      const sub=S.consumos.filter(x=>x.cid===c.id&&x.tipo===a.key).reduce((s,x)=>s+Number(x.cant)*Number(x.precio),0);
+      const cant=S.consumos.filter(x=>x.cid===c.id&&x.tipo===a.key).reduce((s,x)=>s+Number(x.cant),0);
+      rowTot+=sub; rowCant+=cant;
+      h+=`<td${alt} class="r">${fpeso(sub)}</td><td${alt} class="r">${fnum(cant,1)} ${a.unidad}</td>`;
+    });
+    const pct=grandTotalAlim>0?(rowTot/grandTotalAlim*100).toFixed(1)+'%':'—';
+    h+=`<td class="tot r">${fpeso(rowTot)}</td><td class="tot r">${fnum(rowCant,1)} ${a.unidad}</td><td class="tot c">${pct}</td></tr>`;
+  });
+  // Fila total
+  h+=`<tr><td class="tot"><b>Total</b></td>`;
+  CORRALES.forEach(c=>h+=`<td class="tot r">${fpeso(costoAlim(c.id))}</td><td class="tot"></td>`);
+  h+=`<td class="tot r">${fpeso(grandTotalAlim)}</td><td class="tot"></td><td class="tot c">100%</td></tr>`;
+  h+=`</table>`;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TABLAS POR CORRAL — INGRESOS / ALIMENTACIÓN / VENTAS / RESULTADO
+  // ══════════════════════════════════════════════════════════════════════════
+  CORRALES.forEach(cor => {
+    // Título corral
+    h+=`<table><tr><td colspan="7" class="titulo">${esc(cor.nombre.toUpperCase())}</td></tr></table>`;
+
+    // ── INGRESOS ──────────────────────────────────────────────────────────
+    h+=`<table>`;
+    h+=`<tr><td colspan="6" class="sec-g">INGRESOS DE ANIMALES</td></tr>`;
+    h+=`<tr><th class="hg">Fecha</th><th class="hg">Cabezas</th><th class="hg">Kg promedio</th><th class="hg">Precio / kg</th><th class="hg">Total kg</th><th class="hg">Costo compra</th></tr>`;
+    const ingresos=S.ingresos.filter(i=>i.cid===cor.id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    let tIC=0,tIK=0,tICo=0;
+    ingresos.forEach((i,ri)=>{
+      const tk=+i.cant*+i.kg,tc=tk*+i.precio; tIC+=+i.cant;tIK+=tk;tICo+=tc;
+      const a=ri%2===1?' class="alt"':'';
+      h+=`<tr><td${a} class="c">${fd(i.fecha)}</td><td${a} class="c">${fnum(i.cant)}</td>
+        <td${a} class="r">${fnum(i.kg,1)} kg</td><td${a} class="r">${fpeso(i.precio)}</td>
+        <td${a} class="r">${fnum(tk)} kg</td><td${a} class="r">${fpeso(tc)}</td></tr>`;
+    });
+    if(!ingresos.length) h+=`<tr><td colspan="6" style="color:#999;font-style:italic">Sin registros</td></tr>`;
+    h+=`<tr><td class="tot">Subtotal</td><td class="tot c">${fnum(tIC)} cab.</td><td class="tot"></td><td class="tot"></td><td class="tot r">${fnum(tIK)} kg</td><td class="tot r">${fpeso(tICo)}</td></tr>`;
+    h+=`</table>`;
+
+    // ── ALIMENTACIÓN ──────────────────────────────────────────────────────
+    h+=`<table>`;
+    h+=`<tr><td colspan="7" class="sec-b">ALIMENTACIÓN</td></tr>`;
+    h+=`<tr><th class="hb">Fecha</th><th class="hb">Alimento</th><th class="hb">Cantidad</th><th class="hb">Precio unit.</th><th class="hb">Subtotal</th><th class="hb">Stock ese día</th><th class="hb">Costo / animal</th></tr>`;
+    const consumos=S.consumos.filter(c=>c.cid===cor.id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    let tCC2=0;
+    consumos.forEach((c,ri)=>{
+      const sub=+c.cant*+c.precio,stk2=stockAt(cor.id,c.fecha); tCC2+=sub;
+      const alim=ALIMENTOS.find(a=>a.key===c.tipo)||{label:c.tipo,unidad:'',icon:''};
+      const a=ri%2===1?' class="alt"':'';
+      h+=`<tr><td${a} class="c">${fd(c.fecha)}</td><td${a}>${alim.icon} ${esc(alim.label)}</td>
+        <td${a} class="r">${fnum(c.cant,1)}</td><td${a} class="r">${fpeso(c.precio)}</td>
+        <td${a} class="r">${fpeso(sub)}</td><td${a} class="c">${fnum(stk2)} cab.</td>
+        <td${a} class="r">${fpeso(stk2>0?sub/stk2:0)}</td></tr>`;
+    });
+    if(!consumos.length) h+=`<tr><td colspan="7" style="color:#999;font-style:italic">Sin registros</td></tr>`;
+    h+=`<tr><td class="tot">Subtotal</td><td class="tot"></td><td class="tot"></td><td class="tot"></td><td class="tot r">${fpeso(tCC2)}</td><td class="tot"></td><td class="tot"></td></tr>`;
+    // Resumen por alimento
+    h+=`<tr><td colspan="7" style="border:none;height:6px"></td></tr>`;
+    h+=`<tr><th class="hb" colspan="2">Alimento</th><th class="hb" colspan="3">Costo total</th><th class="hb" colspan="2">Cantidad</th></tr>`;
+    ALIMENTOS.forEach(a=>{
+      const c2=consumos.filter(c=>c.tipo===a.key);
+      const t=c2.reduce((s,c)=>s+Number(c.cant)*Number(c.precio),0);
+      const cant=c2.reduce((s,c)=>s+Number(c.cant),0);
+      h+=`<tr><td colspan="2">${a.icon} ${a.label}</td><td class="r" colspan="3">${fpeso(t)}</td><td class="r" colspan="2">${fnum(cant,1)} ${a.unidad}</td></tr>`;
+    });
+    h+=`</table>`;
+
+    // ── VENTAS ────────────────────────────────────────────────────────────
+    h+=`<table>`;
+    h+=`<tr><td colspan="6" class="sec-a">VENTAS</td></tr>`;
+    h+=`<tr><th class="ha">Fecha</th><th class="ha">Cabezas</th><th class="ha">Kg promedio</th><th class="ha">Precio / kg</th><th class="ha">Total kg</th><th class="ha">Ingreso</th></tr>`;
+    const ventas=S.ventas.filter(v=>v.cid===cor.id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    let tVC=0,tVK=0,tVI=0;
+    ventas.forEach((v,ri)=>{
+      const tk=+v.cant*+v.kg,ing=tk*+v.precio; tVC+=+v.cant;tVK+=tk;tVI+=ing;
+      const a=ri%2===1?' class="alt"':'';
+      h+=`<tr><td${a} class="c">${fd(v.fecha)}</td><td${a} class="c">${fnum(v.cant)}</td>
+        <td${a} class="r">${fnum(v.kg,1)} kg</td><td${a} class="r">${fpeso(v.precio)}</td>
+        <td${a} class="r">${fnum(tk)} kg</td><td${a} class="r">${fpeso(ing)}</td></tr>`;
+    });
+    if(!ventas.length) h+=`<tr><td colspan="6" style="color:#999;font-style:italic">Sin registros</td></tr>`;
+    h+=`<tr><td class="tot">Subtotal</td><td class="tot c">${fnum(tVC)} cab.</td><td class="tot"></td><td class="tot"></td><td class="tot r">${fnum(tVK)} kg</td><td class="tot r">${fpeso(tVI)}</td></tr>`;
+    h+=`</table>`;
+
+    // ── RESULTADO ─────────────────────────────────────────────────────────
+    const cc3=costoCompra(cor.id),ca3=costoAlim(cor.id),iv3=ingVentas(cor.id),util3=iv3-cc3-ca3;
+    const kgg3=kgGanados(cor.id),vend3=totIng(cor.id)-stockNow(cor.id);
+    const uc=util3>=0?'pos':'neg';
+    h+=`<table>`;
+    h+=`<tr><td colspan="2" class="sec-n">RESULTADO</td></tr>`;
+    h+=`<tr><td class="lbl">Costo de compra</td><td class="r">${fpeso(cc3)}</td></tr>`;
+    h+=`<tr><td class="lbl">Costo de alimentación</td><td class="r">${fpeso(ca3)}</td></tr>`;
+    h+=`<tr><td class="lbl">Ingreso por ventas</td><td class="r">${fpeso(iv3)}</td></tr>`;
+    h+=`<tr><td class="${uc}">UTILIDAD NETA</td><td class="${uc}">${fpeso(util3)}</td></tr>`;
+    h+=`<tr><td colspan="2" style="border:none;height:6px"></td></tr>`;
+    h+=`<tr><td class="kgg">Kg ganados (engorde)</td><td class="kgg r">${fnum(kgg3)} kg</td></tr>`;
+    if(vend3>0) h+=`<tr><td class="kgg">Kg ganados / animal vendido</td><td class="kgg r">${fnum(kgg3/vend3,1)} kg</td></tr>`;
+    h+=`</table>`;
+
+    h+=`<p style="margin:30px 0 0;border-top:2px solid #0F3D2E;padding-top:8px"></p>`;
+  });
+
+  h+=`</body></html>`;
+
+  // ── Guardar ──────────────────────────────────────────────────────────────
+  const blob = new Blob(['\ufeff'+h], { type:'application/vnd.ms-excel;charset=utf-8' });
+  if (window.showSaveFilePicker) {
+    window.showSaveFilePicker({
+      suggestedName: 'corrales_engorde_' + today() + '.xls',
+      types: [{ description: 'Excel', accept: { 'application/vnd.ms-excel': ['.xls'] } }]
+    }).then(async fh => {
+      const w = await fh.createWritable();
+      await w.write(blob); await w.close();
+      setAlert('Excel exportado con colores correctamente.', 'g'); render();
+    }).catch(e => { if (e.name!=='AbortError') { fallback(); } });
+  } else { fallback(); }
+
+  function fallback() {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='corrales_engorde_'+today()+'.xls';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    setAlert('Excel exportado correctamente.', 'g'); render();
+  }
+}
+
+// ========== RENDER ==========
+function render() {
+  [chartInst, chartInst2].forEach(ch => { try { if (ch) ch.destroy(); } catch(e) {} });
+  chartInst = chartInst2 = null;
+  document.getElementById('root').innerHTML = buildApp();
+  attachEvents();
+  if (S.page === 'graficos') setTimeout(buildCharts, 80);
+}
+
+function buildApp() {
+  const nav = [
+    {k:'dashboard', icon:'📊', l:'Panel'},
+    {k:'ingresos',  icon:'📥', l:'Ingresos'},
+    {k:'consumos',  icon:'🌿', l:'Alimentación'},
+    {k:'ventas',    icon:'💰', l:'Ventas'},
+    {k:'costos',    icon:'🧮', l:'Costos'},
+    {k:'graficos',  icon:'📈', l:'Gráficos'}
+  ];
+  let h = `<div class="app-header">
+    <div class="app-brand">
+      <div class="brand-icon">🐄</div>
+      <div><div class="brand-name">Agroganadera Los Médanos</div><div class="brand-sub">Gestión de corrales de engorde</div></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-export" id="btn-export">📊 Exportar Excel</button>
+      <button class="btn btn-save-manual" id="btn-save-manual">&#128190; Guardar en GitHub</button>
+      <button class="btn btn-gh-config" id="btn-gh-config" title="Configurar GitHub">&#128273; Configurar</button>
+    </div>
+  </div>
+  <div class="sidenav">`;
+  nav.forEach(p => { h += `<button class="snav ${S.page===p.k?'active':''}" data-page="${p.k}">${p.icon} ${p.l}</button>`; });
+  h += `</div>`;
+  if (S.alert) h += `<div class="alert alert-${S.alert.type}">${S.alert.msg}</div>`;
+  if (!['dashboard','graficos'].includes(S.page)) {
+    h += `<div class="corral-bar">`;
+    CORRALES.forEach(c => {
+      const stk = stockNow(c.id);
+      h += `<button class="ctab ${S.corral===c.id?'active':''}" data-corral="${c.id}">${c.nombre}<span class="stk">(${fn(stk,0)} cab.)</span></button>`;
+    });
+    h += `</div>`;
+  }
+  switch(S.page) {
+    case 'dashboard': return h + buildDashboard();
+    case 'ingresos':  return h + buildIngresos();
+    case 'consumos':  return h + buildConsumos();
+    case 'ventas':    return h + buildVentas();
+    case 'costos':    return h + buildCostos();
+    case 'graficos':  return h + buildGraficos();
+  }
+  return h;
+}
+
+function buildDashboard() {
+  let totAn=0, totKgV=0, totIv=0, totCC=0, totCA=0, totRes=0, totKgI=0, totKgG=0;
+  CORRALES.forEach(c => {
+    totAn  += stockNow(c.id);
+    totKgV += kgVend(c.id);
+    totKgI += kgIngresados(c.id);
+    totKgG += kgGanados(c.id);
+    const iv=ingVentas(c.id), cc=costoCompra(c.id), ca=costoAlim(c.id);
+    totIv += iv; totCC += cc; totCA += ca; totRes += iv-cc-ca;
+  });
+
+  // Fila 1: 4 KPIs financieros principales
+  let h = `<div class="kpi-grid" style="margin-bottom:1px">
+    <div class="kpi"><div class="kpi-icon">🐄</div><div class="kpi-label">Stock total</div><div class="kpi-val">${fn(totAn,0)}</div><div class="kpi-sub">animales en corrales</div></div>
+    <div class="kpi"><div class="kpi-icon">💵</div><div class="kpi-label">Ingreso por ventas</div><div class="kpi-val">${fp(totIv)}</div></div>
+    <div class="kpi"><div class="kpi-icon">🛒</div><div class="kpi-label">Costo de compra</div><div class="kpi-val">${fp(totCC)}</div></div>
+    <div class="kpi"><div class="kpi-icon">🌿</div><div class="kpi-label">Costo de alimentación</div><div class="kpi-val">${fp(totCA)}</div></div>
+  </div>`;
+  // Fila 2: utilidad + kilos
+  h += `<div class="kpi-grid" style="margin-bottom:18px">
+    <div class="kpi" style="border-top:2px solid ${totRes>=0?'var(--green)':'var(--red)'}">
+      <div class="kpi-icon">${totRes>=0?'📈':'📉'}</div>
+      <div class="kpi-label">Utilidad neta</div>
+      <div class="kpi-val ${totRes>=0?'kpi-pos':'kpi-neg'}">${fp(totRes)}</div>
+      <div class="kpi-sub">${totRes>=0?'✓ Ganancia':'⚠ Pérdida'}</div>
+    </div>
+    <div class="kpi"><div class="kpi-icon">⚖️</div><div class="kpi-label">Kg vendidos</div><div class="kpi-val">${fn(totKgV,0)}</div><div class="kpi-sub">kg totales egresados</div></div>
+    <div class="kpi"><div class="kpi-icon">📥</div><div class="kpi-label">Kg ingresados</div><div class="kpi-val">${fn(totKgI,0)}</div><div class="kpi-sub">kg al entrar al corral</div></div>
+    <div class="kpi" style="border-top:2px solid var(--green)"><div class="kpi-icon">📊</div><div class="kpi-label">Kg ganados</div><div class="kpi-val kpi-pos">${fn(totKgG,0)}</div><div class="kpi-sub">${(() => { const vend = CORRALES.reduce((s,c)=>s+totIng(c.id)-stockNow(c.id),0); return vend>0 ? fn(totKgG/vend,1)+' kg / animal vendido' : 'sin ventas aún'; })()}</div></div>
+  </div>`;
+
+  // Tarjetas por corral — ahora con más datos
+  h += `<div class="corral-summary-grid">`;
+  CORRALES.forEach(c => {
+    const ing=totIng(c.id), stk=stockNow(c.id), vend=ing-stk;
+    const ca=costoAlim(c.id), cc=costoCompra(c.id), iv=ingVentas(c.id), res=iv-ca-cc;
+    const kgV=kgVend(c.id), kgI=kgIngresados(c.id), kgG=kgGanados(c.id);
+    h += `<div class="corral-card">
+      <div class="corral-card-header">
+        <div class="corral-card-name">🏚️ ${c.nombre}</div>
+        <span class="pill ${res>=0?'pill-green':'pill-red'}">${fp(res)}</span>
+      </div>
+      <div class="corral-card-body">
+        <div><div class="cc-item-label">Stock</div><div class="cc-item-val">${fn(stk,0)} cab.</div></div>
+        <div><div class="cc-item-label">Vendidos</div><div class="cc-item-val">${fn(vend,0)} cab.</div></div>
+        <div><div class="cc-item-label">Ingreso venta</div><div class="cc-item-val" style="font-size:13px">${fp(iv)}</div></div>
+        <div><div class="cc-item-label">Costo compra</div><div class="cc-item-val" style="font-size:13px">${fp(cc)}</div></div>
+        <div><div class="cc-item-label">Costo alim.</div><div class="cc-item-val" style="font-size:13px">${fp(ca)}</div></div>
+        <div><div class="cc-item-label">Kg ganados</div><div class="cc-item-val" style="font-size:13px;color:var(--green)">${fn(kgG,0)} kg</div></div>
+      </div>
+      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div class="cc-item-label">Kg ingresados</div><div style="font-size:12px;font-weight:500">${fn(kgI,0)} kg</div></div>
+        <div><div class="cc-item-label">Kg vendidos</div><div style="font-size:12px;font-weight:500">${fn(kgV,0)} kg</div></div>
+      </div>
+    </div>`;
+  });
+  h += `</div>`;
+  const grandTotal = CORRALES.reduce((s,c) => s + costoAlim(c.id), 0);
+  h += `<div class="section-label">Distribución del costo de alimentación</div>
+  <div class="tw"><table class="data-table"><thead><tr>
+    <th>Alimento</th>${CORRALES.map(c=>`<th class="thc">${c.nombre}</th>`).join('')}
+    <th class="thc">Total</th><th class="thc">%</th>
+  </tr></thead><tbody>`;
+  ALIMENTOS.forEach(a => {
+    let rowTotal=0, rowCantTotal=0;
+    let row = `<tr><td><span class="pill pill-teal">${a.icon} ${a.label}</span></td>`;
+    CORRALES.forEach(c => {
+      const sub=S.consumos.filter(x=>x.cid===c.id&&x.tipo===a.key).reduce((s,x)=>s+Number(x.cant)*Number(x.precio),0);
+      const cant=cantAlim(c.id,a.key);
+      rowTotal+=sub; rowCantTotal+=cant;
+      row += `<td class="tdc"><div class="cell-pair"><span class="cell-peso">${fp(sub)}</span><span class="cell-cant">${fn(cant,1)} ${a.unidad}</span></div></td>`;
+    });
+    row += `<td class="tdc"><div class="cell-pair"><span class="cell-peso">${fp(rowTotal)}</span><span class="cell-cant">${fn(rowCantTotal,1)} ${a.unidad}</span></div></td>`;
+    row += `<td class="tdc">${pct(rowTotal,grandTotal)}</td></tr>`;
+    h += row;
+  });
+  h += `<tr class="total-row"><td><strong>Total</strong></td>`;
+  CORRALES.forEach(c => h += `<td class="tdc"><strong>${fp(costoAlim(c.id))}</strong></td>`);
+  h += `<td class="tdc"><strong>${fp(grandTotal)}</strong></td><td class="tdc">100%</td></tr>`;
+  h += `</tbody></table></div>`;
+  return h;
+}
+
+function buildIngresos() {
+  const cid = S.corral;
+  const list = S.ingresos.filter(i => i.cid === cid).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  let h = `<div class="panel">
+  <div class="panel-title">📥 Registrar ingreso de animales</div>
+  <div class="fgrid">
+    <div class="fg"><label>Fecha de ingreso</label><input type="date" id="if" value="${today()}"></div>
+    <div class="fg"><label>Cantidad de animales</label><input type="number" id="ic" placeholder="Ej: 50" min="1"></div>
+    <div class="fg"><label>Kilos promedio / animal</label><input type="number" id="ik" placeholder="Ej: 280" min="1"></div>
+    <div class="fg"><label>Precio por kg ($)</label><input type="number" id="ip" placeholder="Ej: 1500" min="0"></div>
+  </div>
+  <button class="btn btn-primary" id="btn-ing">✓ Registrar ingreso</button>
+  </div>`;
+  if (!list.length) {
+    h += `<div class="empty"><span class="empty-icon">📭</span>No hay ingresos en este corral todavía.</div>`;
+  } else {
+    h += `<div class="section-label">Historial — ${CORRALES.find(c=>c.id===cid)?.nombre}</div>
+    <div class="tw"><table class="data-table"><thead><tr><th>Fecha</th><th>Cabezas</th><th>Kg prom.</th><th>Precio/kg</th><th>Total kg</th><th>Costo compra</th><th>Acciones</th></tr></thead><tbody>`;
+    list.forEach(i => {
+      const tk = +i.cant * +i.kg;
+      h += `<tr><td>${fd(i.fecha)}</td><td><strong>${fn(i.cant,0)}</strong></td><td>${fn(i.kg)} kg</td><td>${fp(i.precio)}</td><td>${fn(tk)} kg</td><td>${fp(tk*+i.precio)}</td>
+      <td class="td-actions">
+        <button class="btn-edit" data-edit-ing="${i.id}" title="Editar">✏️</button>
+        <button class="btn-del" data-del-ing="${i.id}" title="Eliminar">🗑</button>
+      </td></tr>`;
+    });
+    h += `</tbody></table></div>`;
+    const tc=list.reduce((s,i)=>s+Number(i.cant),0);
+    const tk=list.reduce((s,i)=>s+Number(i.cant)*Number(i.kg),0);
+    const tco=list.reduce((s,i)=>s+Number(i.cant)*Number(i.kg)*Number(i.precio),0);
+    h += `<div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total ingresado</div><div class="kpi-val">${fn(tc,0)} <span style="font-size:14px;font-weight:400">cab.</span></div></div>
+    <div class="kpi"><div class="kpi-label">Stock actual</div><div class="kpi-val">${fn(stockNow(cid),0)} <span style="font-size:14px;font-weight:400">cab.</span></div></div>
+    <div class="kpi"><div class="kpi-label">Total kg ingresados</div><div class="kpi-val">${fn(tk,0)} <span style="font-size:14px;font-weight:400">kg</span></div></div>
+    <div class="kpi"><div class="kpi-label">Costo total compra</div><div class="kpi-val">${fp(tco)}</div></div>
+    </div>`;
+  }
+  return h;
+}
+
+function buildConsumos() {
+  const cid = S.corral;
+  const list = S.consumos.filter(c => c.cid === cid).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  let h = `<div class="panel">
+  <div class="panel-title">🌿 Registrar consumo de alimento</div>
+  <div class="fgrid">
+    <div class="fg"><label>Fecha</label><input type="date" id="cf" value="${today()}"></div>
+    <div class="fg"><label>Alimento</label><select id="ct">${ALIMENTOS.map(a=>`<option value="${a.key}">${a.icon} ${a.label} (${a.unidad})</option>`).join('')}</select></div>
+    <div class="fg"><label>Cantidad</label><input type="number" id="cc" placeholder="Ej: 500" min="0.01" step="0.01"></div>
+    <div class="fg"><label>Precio unitario ($)</label><input type="number" id="cp" placeholder="Ej: 80" min="0" step="0.01"></div>
+  </div>
+  <div class="stock-info">🐄 Animales en corral en esa fecha: <strong id="stk-disp">—</strong></div>
+  <button class="btn btn-primary" id="btn-con">✓ Registrar consumo</button>
+  </div>`;
+  if (!list.length) {
+    h += `<div class="empty"><span class="empty-icon">🌿</span>No hay consumos registrados en este corral.</div>`;
+  } else {
+    h += `<div class="section-label">Historial de alimentación</div>
+    <div class="tw"><table class="data-table"><thead><tr><th>Fecha</th><th>Stock ese día</th><th>Alimento</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th>$/animal</th><th>Acciones</th></tr></thead><tbody>`;
+    list.forEach(c => {
+      const stk=stockAt(cid,c.fecha);
+      const alim=ALIMENTOS.find(a=>a.key===c.tipo)||{label:c.tipo,unidad:'',icon:'📦'};
+      const sub=Number(c.cant)*Number(c.precio);
+      h += `<tr><td>${fd(c.fecha)}</td>
+      <td><span class="pill pill-blue">${fn(stk,0)} cab.</span></td>
+      <td><span class="pill pill-teal">${alim.icon} ${alim.label}</span></td>
+      <td>${fn(c.cant)} ${alim.unidad}</td><td>${fp(c.precio)}</td><td>${fp(sub)}</td>
+      <td>${fp(stk>0?sub/stk:0)}</td>
+      <td class="td-actions">
+        <button class="btn-edit" data-edit-con="${c.id}" title="Editar">✏️</button>
+        <button class="btn-del" data-del-con="${c.id}" title="Eliminar">🗑</button>
+      </td></tr>`;
+    });
+    h += `</tbody></table></div>`;
+    h += `<div class="section-label" style="margin-top:8px">Resumen por tipo de alimento</div><div class="kpi-grid">`;
+    ALIMENTOS.forEach(a => {
+      const c2=list.filter(c=>c.tipo===a.key);
+      const t=c2.reduce((s,c)=>s+Number(c.cant)*Number(c.precio),0);
+      const cant=c2.reduce((s,c)=>s+Number(c.cant),0);
+      h += `<div class="kpi"><div class="kpi-icon">${a.icon}</div><div class="kpi-label">${a.label}</div><div class="kpi-val" style="font-size:17px">${fp(t)}</div><div class="kpi-sub">${fn(cant,1)} ${a.unidad}</div></div>`;
+    });
+    h += `</div>`;
+  }
+  return h;
+}
+
+function buildVentas() {
+  const cid = S.corral, stk = stockNow(cid);
+  const list = S.ventas.filter(v => v.cid === cid).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  let h = `<div class="panel">
+  <div class="panel-title">💰 Registrar venta de animales</div>
+  <div class="stock-info">🐄 Stock disponible para vender: <strong>${fn(stk,0)} animales</strong></div>
+  <div class="fgrid">
+    <div class="fg"><label>Fecha de venta</label><input type="date" id="vf" value="${today()}"></div>
+    <div class="fg"><label>Cantidad a vender</label><input type="number" id="vc" placeholder="Ej: 10" min="1"></div>
+    <div class="fg"><label>Kilos prom. al vender</label><input type="number" id="vk" placeholder="Ej: 380" min="1"></div>
+    <div class="fg"><label>Precio por kg ($)</label><input type="number" id="vp" placeholder="Ej: 2000" min="0"></div>
+  </div>
+  <button class="btn btn-primary" id="btn-ven">✓ Registrar venta</button>
+  </div>`;
+  if (!list.length) {
+    h += `<div class="empty"><span class="empty-icon">🧾</span>No hay ventas registradas en este corral.</div>`;
+  } else {
+    h += `<div class="section-label">Historial de ventas</div>
+    <div class="tw"><table class="data-table"><thead><tr><th>Fecha</th><th>Cabezas</th><th>Kg prom.</th><th>Precio/kg</th><th>Total kg</th><th>Ingreso</th><th>Acciones</th></tr></thead><tbody>`;
+    list.forEach(v => {
+      const tk=Number(v.cant)*Number(v.kg), ing=tk*Number(v.precio);
+      h += `<tr><td>${fd(v.fecha)}</td><td><strong>${fn(v.cant,0)}</strong></td><td>${fn(v.kg)} kg</td><td>${fp(v.precio)}</td><td>${fn(tk)} kg</td><td><strong>${fp(ing)}</strong></td>
+      <td class="td-actions">
+        <button class="btn-edit" data-edit-ven="${v.id}" title="Editar">✏️</button>
+        <button class="btn-del" data-del-ven="${v.id}" title="Eliminar">🗑</button>
+      </td></tr>`;
+    });
+    h += `</tbody></table></div>`;
+    const tc=list.reduce((s,v)=>s+Number(v.cant),0);
+    const tk=list.reduce((s,v)=>s+Number(v.cant)*Number(v.kg),0);
+    const ti=list.reduce((s,v)=>s+Number(v.cant)*Number(v.kg)*Number(v.precio),0);
+    h += `<div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total vendido</div><div class="kpi-val">${fn(tc,0)} <span style="font-size:14px;font-weight:400">cab.</span></div></div>
+    <div class="kpi"><div class="kpi-label">Total kg vendidos</div><div class="kpi-val">${fn(tk,0)} <span style="font-size:14px;font-weight:400">kg</span></div></div>
+    <div class="kpi"><div class="kpi-label">Ingreso total</div><div class="kpi-val">${fp(ti)}</div></div>
+    <div class="kpi"><div class="kpi-label">Precio prom. / kg</div><div class="kpi-val">${tk>0?fp(ti/tk):'—'}</div></div>
+    </div>`;
+  }
+  return h;
+}
+
+function buildCostos() {
+  const cid = S.corral;
+  const cor = CORRALES.find(c => c.id === cid);
+
+  const cc   = costoCompra(cid);
+  const ca   = costoAlim(cid);
+  const iv   = ingVentas(cid);
+  const util = iv - cc - ca;
+  const ing  = totIng(cid);
+  const stk  = stockNow(cid);
+  const vend = ing - stk;
+  const kgI  = kgIngresados(cid);
+  const kgV  = kgVend(cid);
+  const kgG  = kgGanados(cid);
+
+  const costoTotal       = cc + ca;
+  const caXkgG           = kgG  > 0 ? ca   / kgG  : 0;   // costo alim / kg ganado
+  const caXAnimal        = vend > 0 ? ca   / vend  : 0;   // costo alim / animal vendido
+  const precioVentaProm  = kgV  > 0 ? iv   / kgV   : 0;   // precio venta promedio $/kg
+  const margenNeto       = kgV  > 0 ? util / kgV   : 0;   // margen neto $/kg vendido
+
+  // ── FILA 1: costos base + ingresos ───────────────────────────────────────
+  let h = `<div class="kpi-grid" style="margin-bottom:1px">
+    <div class="kpi">
+      <div class="kpi-icon">🛒</div>
+      <div class="kpi-label">Costo de compra</div>
+      <div class="kpi-val">${fp(cc)}</div>
+      <div class="kpi-sub">${fn(ing,0)} animales ingresados</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">🌿</div>
+      <div class="kpi-label">Costo de alimentación</div>
+      <div class="kpi-val">${fp(ca)}</div>
+      <div class="kpi-sub">todos los insumos</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">💲</div>
+      <div class="kpi-label">Costo total</div>
+      <div class="kpi-val">${fp(costoTotal)}</div>
+      <div class="kpi-sub">compra + alimentación</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">💵</div>
+      <div class="kpi-label">Ingresos por ventas</div>
+      <div class="kpi-val">${fp(iv)}</div>
+      <div class="kpi-sub">${fn(vend,0)} animales vendidos</div>
+    </div>
+  </div>`;
+
+  // ── FILA 2: utilidad + kg ─────────────────────────────────────────────────
+  h += `<div class="kpi-grid" style="margin-bottom:1px">
+    <div class="kpi" style="border-top:2px solid ${util>=0?'var(--green)':'var(--red)'}">
+      <div class="kpi-icon">${util>=0?'📈':'📉'}</div>
+      <div class="kpi-label">Utilidad neta</div>
+      <div class="kpi-val ${util>=0?'kpi-pos':'kpi-neg'}">${fp(util)}</div>
+      <div class="kpi-sub">${util>=0?'✓ Ganancia':'⚠ Pérdida'}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">📥</div>
+      <div class="kpi-label">Kg ingresados</div>
+      <div class="kpi-val">${fn(kgI,0)}</div>
+      <div class="kpi-sub">kg al entrar al corral</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">⚖️</div>
+      <div class="kpi-label">Kg vendidos</div>
+      <div class="kpi-val">${fn(kgV,0)}</div>
+      <div class="kpi-sub">kg totales egresados</div>
+    </div>
+    <div class="kpi" style="border-top:2px solid var(--green)">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-label">Kg ganados (engorde)</div>
+      <div class="kpi-val kpi-pos">${fn(kgG,0)}</div>
+      <div class="kpi-sub">${vend>0?fn(kgG/vend,1)+' kg / animal':'sin ventas'}</div>
+    </div>
+  </div>`;
+
+  // ── FILA 3: indicadores de eficiencia ────────────────────────────────────
+  h += `<div class="kpi-grid" style="margin-bottom:18px">
+    <div class="kpi">
+      <div class="kpi-icon">💹</div>
+      <div class="kpi-label">Precio de venta prom.</div>
+      <div class="kpi-val">${kgV>0?fp(precioVentaProm):'—'}</div>
+      <div class="kpi-sub">$ por kg vendido</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">🌾</div>
+      <div class="kpi-label">Costo alim. / kg ganado</div>
+      <div class="kpi-val">${kgG>0?fp(caXkgG):'—'}</div>
+      <div class="kpi-sub">eficiencia de conversión</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">🐄</div>
+      <div class="kpi-label">Costo alim. / animal vend.</div>
+      <div class="kpi-val">${vend>0?fp(caXAnimal):'—'}</div>
+      <div class="kpi-sub">alimentación por cabeza</div>
+    </div>
+    <div class="kpi" style="border-top:2px solid ${margenNeto>=0?'var(--green)':'var(--red)'}">
+      <div class="kpi-icon">📐</div>
+      <div class="kpi-label">Margen neto / kg vendido</div>
+      <div class="kpi-val ${margenNeto>=0?'kpi-pos':'kpi-neg'}">${kgV>0?fp(margenNeto):'—'}</div>
+      <div class="kpi-sub">utilidad por kg</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">🔢</div>
+      <div class="kpi-label">% Margen sobre ventas</div>
+      <div class="kpi-val ${util>=0?'kpi-pos':'kpi-neg'}">${iv>0?(util/iv*100).toFixed(1)+'%':'—'}</div>
+      <div class="kpi-sub">utilidad / ingreso</div>
+    </div>
+  </div>`;
+
+  // ── Tabla resumen de costos ───────────────────────────────────────────────
+  h += `<div class="section-label">Resumen de costos — ${cor.nombre}</div>
+  <div class="tw"><table class="data-table"><thead><tr>
+    <th>Concepto</th><th class="thc">Importe</th><th class="thc">% del costo total</th>
+  </tr></thead><tbody>
+    <tr><td>🛒 Costo de compra de animales</td><td class="tdc"><strong>${fp(cc)}</strong></td><td class="tdc">${pct(cc,costoTotal)}</td></tr>`;
+
+  ALIMENTOS.forEach(a => {
+    const sub  = S.consumos.filter(x=>x.cid===cid&&x.tipo===a.key).reduce((s,x)=>s+Number(x.cant)*Number(x.precio),0);
+    const cant = cantAlim(cid, a.key);
+    if (sub > 0 || cant > 0) {
+      h += `<tr><td>&nbsp;&nbsp;&nbsp;${a.icon} ${a.label} <span style="color:var(--text3);font-size:12px">(${fn(cant,1)} ${a.unidad})</span></td><td class="tdc">${fp(sub)}</td><td class="tdc">${pct(sub,costoTotal)}</td></tr>`;
+    }
+  });
+  h += `<tr><td>&nbsp;&nbsp;&nbsp;<strong>Subtotal alimentación</strong></td><td class="tdc"><strong>${fp(ca)}</strong></td><td class="tdc">${pct(ca,costoTotal)}</td></tr>`;
+  h += `<tr class="total-row"><td><strong>COSTO TOTAL</strong></td><td class="tdc"><strong>${fp(costoTotal)}</strong></td><td class="tdc">100%</td></tr>`;
+  h += `</tbody></table></div>`;
+
+  // ── Tabla indicadores de eficiencia ──────────────────────────────────────
+  h += `<div class="section-label" style="margin-top:8px">Indicadores de eficiencia</div>
+  <div class="tw"><table class="data-table"><thead><tr>
+    <th>Indicador</th><th class="thc">Valor</th><th>Descripción</th>
+  </tr></thead><tbody>
+    <tr><td>🌾 Costo alim. / kg ganado</td><td class="tdc"><strong>${kgG>0?fp(caXkgG):'—'}</strong></td><td style="color:var(--text2);font-size:12px">Cuánto costó alimentar para ganar cada kg de peso</td></tr>
+    <tr><td>🐄 Costo alim. / animal vendido</td><td class="tdc"><strong>${vend>0?fp(caXAnimal):'—'}</strong></td><td style="color:var(--text2);font-size:12px">Gasto en alimentos por cada animal que salió a venta</td></tr>
+    <tr><td>💹 Precio de venta promedio</td><td class="tdc"><strong>${kgV>0?fp(precioVentaProm):'—'}</strong></td><td style="color:var(--text2);font-size:12px">Precio promedio ponderado por kg vendido</td></tr>
+    <tr><td>📐 Margen neto / kg vendido</td><td class="tdc"><strong style="color:${margenNeto>=0?'var(--green)':'var(--red)'}">${kgV>0?fp(margenNeto):'—'}</strong></td><td style="color:var(--text2);font-size:12px">Ganancia neta por cada kg colocado en venta</td></tr>
+    <tr><td>📊 % Margen sobre ventas</td><td class="tdc"><strong style="color:${util>=0?'var(--green)':'var(--red)'}">${iv>0?(util/iv*100).toFixed(1)+'%':'—'}</strong></td><td style="color:var(--text2);font-size:12px">Utilidad como porcentaje del total de ingresos</td></tr>
+  </tbody></table></div>`;
+
+  return h;
+}
+
+function buildGraficos() {
+  return `<div class="section-label">Costo acumulado de alimentación por corral</div>
+  <div class="chart-card"><canvas id="chart-line" height="200"></canvas></div>
+  <div class="section-label" style="margin-top:8px">Distribución por tipo de alimento (global)</div>
+  <div class="chart-card"><canvas id="chart-dough" height="190"></canvas></div>`;
+}
+
+function buildCharts() {
+  if (typeof Chart === 'undefined') {
+    document.querySelectorAll('.chart-card').forEach(el => el.innerHTML = '<div class="empty">Necesitás conexión a internet para ver los gráficos.</div>');
+    return;
+  }
+  const fechas = [...new Set(S.consumos.map(c => c.fecha))].sort();
+  const cl = document.getElementById('chart-line');
+  if (cl && fechas.length) {
+    const colors = ['#1D9E75','#185FA5','#D85A30'];
+    chartInst = new Chart(cl, { type: 'line',
+      data: { labels: fechas.map(fd), datasets: CORRALES.map((cor,i) => {
+        let a=0; return { label: cor.nombre, data: fechas.map(f => { a+=S.consumos.filter(c=>c.cid===cor.id&&c.fecha===f).reduce((s,c)=>s+Number(c.cant)*Number(c.precio),0); return a; }),
+          borderColor: colors[i], backgroundColor: colors[i]+'18', tension: .35, fill: true, pointRadius: 3 };
+      }) },
+      options: { responsive: true, interaction: { mode:'index', intersect: false },
+        plugins: { legend: { labels: { font: { size: 12 } } } },
+        scales: { x: { ticks: { font: { size:11 } }, grid: { color: 'rgba(128,128,128,.1)' } },
+          y: { ticks: { font: { size:11 }, callback: v => '$'+Number(v).toLocaleString('es-AR',{maximumFractionDigits:0}) }, grid: { color: 'rgba(128,128,128,.1)' } } } } });
+  } else if (cl) cl.parentElement.innerHTML = '<div class="empty">Sin datos de alimentación para graficar.</div>';
+
+  const cd = document.getElementById('chart-dough');
+  if (cd) {
+    const pieData = ALIMENTOS.map(a => S.consumos.filter(c=>c.tipo===a.key).reduce((s,c)=>s+Number(c.cant)*Number(c.precio),0));
+    if (pieData.some(v => v > 0)) {
+      chartInst2 = new Chart(cd, { type:'doughnut',
+        data: { labels: ALIMENTOS.map(a=>a.label), datasets: [{ data: pieData, backgroundColor: ['#1D9E75','#185FA5','#D85A30','#BA7517'], borderWidth: 2, hoverOffset: 6 }] },
+        options: { responsive: true, cutout: '60%', plugins: { legend: { labels: { font: { size:12 } } } } } });
+    } else cd.parentElement.innerHTML = '<div class="empty">Sin datos para graficar.</div>';
+  }
+}
+
+function attachEvents() {
+  document.querySelectorAll('[data-page]').forEach(b => b.addEventListener('click', () => { S.page = b.dataset.page; render(); }));
+  document.querySelectorAll('[data-corral]').forEach(b => b.addEventListener('click', () => { S.corral = Number(b.dataset.corral); render(); }));
+  const bexp = document.getElementById('btn-export'); if (bexp) bexp.addEventListener('click', exportarExcel);
+  const bsave = document.getElementById('btn-save-manual');
+  if (bsave) bsave.addEventListener('click', guardarDatos);
+  const bghcfg = document.getElementById('btn-gh-config');
+  if (bghcfg) bghcfg.addEventListener('click', openTokenModal);
+  const bimport = document.getElementById('btn-import-file');
+  if (bimport) bimport.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if (!d.ingresos || !d.ventas || !d.consumos) { alert('El archivo no es un respaldo válido de esta aplicación.'); return; }
+        if (!confirm(`¿Importar datos del archivo "${file.name}"?\nEsto reemplazará los datos actuales.`)) return;
+        S.ingresos = d.ingresos; S.ventas = d.ventas; S.consumos = d.consumos;
+        save(); setAlert('Datos importados correctamente.', 'g'); render();
+      } catch(err) { alert('No se pudo leer el archivo. Asegurate de que sea un backup válido (.json).'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  // NEW INGRESO
+  const bi = document.getElementById('btn-ing');
+  if (bi) bi.addEventListener('click', () => {
+    const f=document.getElementById('if').value, c=Number(document.getElementById('ic').value),
+          k=Number(document.getElementById('ik').value), p=Number(document.getElementById('ip').value);
+    if (!f||c<1||k<1||p<0) { setAlert('Completá todos los campos correctamente.'); render(); return; }
+    S.ingresos.push({ id:gid(), cid:S.corral, fecha:f, cant:c, kg:k, precio:p });
+    save(); setAlert('Ingreso registrado correctamente.','g'); render();
+  });
+
+  // NEW CONSUMO
+  const cf = document.getElementById('cf');
+  if (cf) {
+    const upd = () => { const el=document.getElementById('stk-disp'); if(el) el.textContent=fn(stockAt(S.corral,cf.value),0)+' animales'; };
+    cf.addEventListener('change', upd); setTimeout(upd, 60);
+  }
+  const bc = document.getElementById('btn-con');
+  if (bc) bc.addEventListener('click', () => {
+    const f=document.getElementById('cf').value, t=document.getElementById('ct').value,
+          c=Number(document.getElementById('cc').value), p=Number(document.getElementById('cp').value);
+    if (!f||c<=0||p<0) { setAlert('Completá todos los campos correctamente.'); render(); return; }
+    const stk=stockAt(S.corral,f);
+    if (stk<=0) { setAlert('No hay animales en el corral en esa fecha.'); render(); return; }
+    S.consumos.push({ id:gid(), cid:S.corral, fecha:f, tipo:t, cant:c, precio:p });
+    save(); setAlert('Consumo registrado correctamente.','g'); render();
+  });
+
+  // NEW VENTA
+  const bv = document.getElementById('btn-ven');
+  if (bv) bv.addEventListener('click', () => {
+    const f=document.getElementById('vf').value, c=Number(document.getElementById('vc').value),
+          k=Number(document.getElementById('vk').value), p=Number(document.getElementById('vp').value);
+    if (!f||c<1||k<1||p<0) { setAlert('Completá todos los campos correctamente.'); render(); return; }
+    const stk=stockAt(S.corral,f);
+    if (c>stk) { setAlert(`No podés vender ${c} animales. En esa fecha hay ${stk} disponibles.`); render(); return; }
+    S.ventas.push({ id:gid(), cid:S.corral, fecha:f, cant:c, kg:k, precio:p });
+    save(); setAlert('Venta registrada correctamente.','g'); render();
+  });
+
+  // EDIT buttons
+  document.querySelectorAll('[data-edit-ing]').forEach(b => b.addEventListener('click', () => openEditIngreso(b.dataset.editIng)));
+  document.querySelectorAll('[data-edit-con]').forEach(b => b.addEventListener('click', () => openEditConsumo(b.dataset.editCon)));
+  document.querySelectorAll('[data-edit-ven]').forEach(b => b.addEventListener('click', () => openEditVenta(b.dataset.editVen)));
+
+  // DELETE buttons
+  document.querySelectorAll('[data-del-ing]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este ingreso?')) { S.ingresos = S.ingresos.filter(i => i.id !== b.dataset.delIng); save(); render(); }
+  }));
+  document.querySelectorAll('[data-del-con]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este consumo?')) { S.consumos = S.consumos.filter(c => c.id !== b.dataset.delCon); save(); render(); }
+  }));
+  document.querySelectorAll('[data-del-ven]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás esta venta?')) { S.ventas = S.ventas.filter(v => v.id !== b.dataset.delVen); save(); render(); }
+  }));
+}
+
+// INIT
+// Carga datos embebidos primero, luego intenta actualizar desde GitHub
+try{const _d={"ingresos":[{"id":"mpteogfvghuxfcl5m7","cid":1,"fecha":"2026-04-14","cant":185,"kg":388,"precio":4500}],"ventas":[{"id":"mpteygs9g8yenva0ywn","cid":1,"fecha":"2026-06-01","cant":100,"kg":530,"precio":4800},{"id":"mptf3msgswew2sba52","cid":1,"fecha":"2026-05-10","cant":40,"kg":520,"precio":4200},{"id":"mptf4mq7fzlybh6r2qp","cid":1,"fecha":"2026-05-15","cant":25,"kg":430,"precio":4500},{"id":"mptf4tjjajf7r9c9fmj","cid":1,"fecha":"2026-05-31","cant":10,"kg":340,"precio":3000},{"id":"mptf5i9i1158l2vutx3s","cid":1,"fecha":"2026-05-31","cant":10,"kg":400,"precio":4100}],"consumos":[{"id":"mpteothepw7bf2wmt3","cid":1,"fecha":"2026-04-17","tipo":"maiz","cant":8000,"precio":168},{"id":"mptep74iklveyc82ro","cid":1,"fecha":"2026-04-21","tipo":"maiz","cant":16000,"precio":168},{"id":"mptepk0ylpzpt5ppd48","cid":1,"fecha":"2026-04-27","tipo":"maiz","cant":5000,"precio":168},{"id":"mptepw4q3udsw6wjbbv","cid":1,"fecha":"2026-05-08","tipo":"maiz","cant":8000,"precio":168},{"id":"mpteq3wi2s3w1oy9o4f","cid":1,"fecha":"2026-05-14","tipo":"maiz","cant":8000,"precio":168},{"id":"mpter19ebinysft9va8","cid":1,"fecha":"2026-05-18","tipo":"maiz","cant":8000,"precio":168},{"id":"mptera56pgmrcl8r08","cid":1,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mptes3u9w3ut68aehz","cid":1,"fecha":"2026-04-21","tipo":"rollos","cant":6,"precio":100000},{"id":"mptesgq2vnvm1buvucg","cid":1,"fecha":"2026-04-24","tipo":"rollos","cant":5,"precio":100000},{"id":"mptet5nu0ut0tp4tixnl","cid":1,"fecha":"2026-05-02","tipo":"rollos","cant":13,"precio":100000},{"id":"mptetjhlv8vrj4jk6us","cid":1,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteu2oybfczmaemxxr","cid":1,"fecha":"2026-05-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteumt5wevaqidn1o","cid":1,"fecha":"2026-05-18","tipo":"rollos","cant":6,"precio":100000},{"id":"mpteuvysvdh0gqp5x77","cid":1,"fecha":"2026-05-31","tipo":"rollos","cant":6,"precio":100000},{"id":"mptevt9k5ow2k2fb8z6","cid":1,"fecha":"2026-04-17","tipo":"concentrado","cant":800,"precio":530},{"id":"mptew8rd11yb1118wb9","cid":1,"fecha":"2026-04-21","tipo":"concentrado","cant":1600,"precio":530},{"id":"mptewjgh35iqz9xg3mb","cid":1,"fecha":"2026-04-27","tipo":"concentrado","cant":400,"precio":530},{"id":"mptewsc10xsd6k6nesuk","cid":1,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mptex5d5mc428b6ghe","cid":1,"fecha":"2026-05-14","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexczsc82cwl9k6i9","cid":1,"fecha":"2026-05-18","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexmapuejj5d4rg","cid":1,"fecha":"2026-05-21","tipo":"concentrado","cant":250,"precio":530},{"id":"mptexuiodd47mzu1w","cid":1,"fecha":"2026-05-31","tipo":"concentrado","cant":250,"precio":530},{"id":"mptezeap4c6pihlfpxe","cid":1,"fecha":"2026-05-28","tipo":"maiz","cant":8000,"precio":168}]};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;}catch(e){loadData();}
+// Si hay token de GitHub, carga datos frescos del servidor
+if(localStorage.getItem('gh_token')){
+  ghLoad().then(ok => { if(ok) render(); else render(); });
+} else { render(); }
+</script>
+
+
+</body></html>
