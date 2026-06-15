@@ -793,6 +793,12 @@
       "tipo": "sales_mqfkv1bl",
       "fecha": "2026-06-15",
       "valor": 510
+    },
+    {
+      "id": "mqfm15afjexl9h3pe4l",
+      "tipo": "sales_mqfkv1bl",
+      "fecha": "2026-06-10",
+      "valor": 400
     }
   ],
   "notas": [],
