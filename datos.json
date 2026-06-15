@@ -65,7 +65,13 @@
       "fecha": "2026-04-24",
       "cant": 33,
       "kg": 515,
-      "precio": 4573
+      "precio": 4129.756995581738,
+      "liquidado": true,
+      "kgLiquidados": 16975,
+      "rinde": null,
+      "desbaste": 0,
+      "precioLiq": 4129.757,
+      "importeTotal": 70102625
     },
     {
       "id": "mpvpdeb49g8mfrgeo8n",
@@ -73,13 +79,18 @@
       "fecha": "2026-05-19",
       "cant": 33,
       "kg": 509,
-      "precio": 4,
+      "precio": 4595,
       "liquidado": true,
       "kgLiquidados": 16810,
       "rinde": null,
       "desbaste": 0,
       "precioLiq": 4595,
-      "importeTotal": 67240
+      "importeTotal": 77241950,
+      "tipo": "frigorifico",
+      "comprador": "",
+      "precioPactado": 4,
+      "obs": "",
+      "baja": false
     }
   ],
   "consumos": [
