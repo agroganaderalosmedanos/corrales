@@ -220,9 +220,10 @@ function stockBolson(bid) {
   if (!b) return 0;
   const comprado = Number(b.cantInicial)||0;
   const consumido = (S.consumos||[]).filter(c=>c.bolsonId===bid).reduce((s,c)=>s+Number(c.cant),0);
+  const consumidoCampo = (S.consumosCampo||[]).filter(c=>c.bolsonId===bid).reduce((s,c)=>s+Number(c.cant),0);
   const transferidoSalida = (S.transferenciasBolson||[]).filter(t=>t.bolsonOrigen===bid).reduce((s,t)=>s+Number(t.cant),0);
   const transferidoEntrada = (S.transferenciasBolson||[]).filter(t=>t.bolsonDestino===bid).reduce((s,t)=>s+Number(t.cant),0);
-  return comprado - consumido - transferidoSalida + transferidoEntrada;
+  return comprado - consumido - consumidoCampo - transferidoSalida + transferidoEntrada;
 }
 // Stock total de un alimento en un campo
 function stockAlimCampo(campoId, tipoAlim) {
@@ -236,7 +237,7 @@ function stockVetProducto(key) {
   return comprado - consumido;
 }
 
-let S = { ingresos: [], ventas: [], consumos: [], pesadas: [], preciosStock: {}, pesoObjetivo: {}, precioProyectado: {}, lotesCerrados: [], corrales: null, notas: [], tipoCambio: [], preciosAlim: [], productosVet: null, preciosVet: [], consumosVet: [], bolsones: [], transferenciasBolson: [], comprasVet: [], insumosExtra: [], moneda: 'ARS', page: 'dashboard', corral: 1, alert: null };
+let S = { ingresos: [], ventas: [], consumos: [], pesadas: [], preciosStock: {}, pesoObjetivo: {}, precioProyectado: {}, lotesCerrados: [], corrales: null, notas: [], tipoCambio: [], preciosAlim: [], productosVet: null, preciosVet: [], consumosVet: [], bolsones: [], transferenciasBolson: [], comprasVet: [], insumosExtra: [], consumosCampo: [], moneda: 'ARS', page: 'dashboard', corral: 1, alert: null };
 let chartInst = null, chartInst2 = null;
 
 function gid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -337,7 +338,7 @@ function setAlert(msg, type='r') {
 
 function save() {
   syncToGithub();
-  try { localStorage.setItem('corrales_data', JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, bolsones: S.bolsones, transferenciasBolson: S.transferenciasBolson, comprasVet: S.comprasVet, insumosExtra: S.insumosExtra, moneda: S.moneda })); } catch(e) {}
+  try { localStorage.setItem('corrales_data', JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, bolsones: S.bolsones, transferenciasBolson: S.transferenciasBolson, comprasVet: S.comprasVet, insumosExtra: S.insumosExtra, consumosCampo: S.consumosCampo, moneda: S.moneda })); } catch(e) {}
   // If user already chose a file, auto-save silently to it
   if (_fileHandle) {
     const html = getHtmlContentRaw();
@@ -390,7 +391,7 @@ async function loadFromGithub() {
 }
 
 function getHtmlContentRaw() {
-  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, bolsones: S.bolsones, transferenciasBolson: S.transferenciasBolson, comprasVet: S.comprasVet, insumosExtra: S.insumosExtra, moneda: S.moneda });
+  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, bolsones: S.bolsones, transferenciasBolson: S.transferenciasBolson, comprasVet: S.comprasVet, insumosExtra: S.insumosExtra, consumosCampo: S.consumosCampo, moneda: S.moneda });
 
   // Limpiamos #root antes de capturar el outerHTML (evita guardar DOM renderizado)
   const rootEl = document.getElementById('root');
@@ -402,14 +403,14 @@ function getHtmlContentRaw() {
   // Reemplaza el bloque INIT completo (datos + render) con datos frescos
   html = html.replace(
     /\/\/ INIT\ntry\{const _d=[\s\S]*?render\(\);\n<\/script>/,
-    `// INIT\ntry{const _d=${data};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;S.tipoCambio=_d.tipoCambio||[];S.preciosAlim=_d.preciosAlim||[];S.notas=_d.notas||[];S.productosVet=_d.productosVet||null;S.preciosVet=_d.preciosVet||[];S.consumosVet=_d.consumosVet||[];S.bolsones=_d.bolsones||[];S.transferenciasBolson=_d.transferenciasBolson||[];S.comprasVet=_d.comprasVet||[];S.insumosExtra=_d.insumosExtra||[];if(_d.moneda)S.moneda=_d.moneda;}catch(e){loadData();}\nrender();\n<\/script>`
+    `// INIT\ntry{const _d=${data};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;S.tipoCambio=_d.tipoCambio||[];S.preciosAlim=_d.preciosAlim||[];S.notas=_d.notas||[];S.productosVet=_d.productosVet||null;S.preciosVet=_d.preciosVet||[];S.consumosVet=_d.consumosVet||[];S.bolsones=_d.bolsones||[];S.transferenciasBolson=_d.transferenciasBolson||[];S.comprasVet=_d.comprasVet||[];S.insumosExtra=_d.insumosExtra||[];S.consumosCampo=_d.consumosCampo||[];if(_d.moneda)S.moneda=_d.moneda;}catch(e){loadData();}\nrender();\n<\/script>`
   );
   return html;
 }
 function loadData() {
   try {
     const r = localStorage.getItem('corrales_data');
-    if (r) { const d = JSON.parse(r); S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; S.pesadas = d.pesadas||[]; S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{}; S.lotesCerrados = d.lotesCerrados||[]; S.tipoCambio = d.tipoCambio||[]; S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null; S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[]; S.bolsones = d.bolsones||[]; S.transferenciasBolson = d.transferenciasBolson||[]; S.comprasVet = d.comprasVet||[]; S.insumosExtra = d.insumosExtra||[]; if(d.moneda) S.moneda = d.moneda; }
+    if (r) { const d = JSON.parse(r); S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; S.pesadas = d.pesadas||[]; S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{}; S.lotesCerrados = d.lotesCerrados||[]; S.tipoCambio = d.tipoCambio||[]; S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null; S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[]; S.bolsones = d.bolsones||[]; S.transferenciasBolson = d.transferenciasBolson||[]; S.comprasVet = d.comprasVet||[]; S.insumosExtra = d.insumosExtra||[]; S.consumosCampo = d.consumosCampo||[]; if(d.moneda) S.moneda = d.moneda; }
   } catch(e) {}
   // Try to load fresh data from GitHub (async — updates after first render)
   if (getGithubToken()) {
@@ -1669,6 +1670,19 @@ function buildDashboard() {
 
 function buildIngresos() { return buildPesadas(); }
 
+function actualizarStockOpts() {
+  const tipoEl = document.getElementById('ct');
+  const bolsonEl = document.getElementById('con-bolson');
+  if (!tipoEl || !bolsonEl) return;
+  const tipo = tipoEl.value;
+  const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+  const alim = ALIMENTOS.find(a=>a.key===tipo)||{unidad:''};
+  bolsonEl.innerHTML = '<option value="">Sin asignar</option>' + bols.map(b=>{
+    const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+    return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${alim.unidad})</option>`;
+  }).join('');
+}
+
 function buildConsumos() {
   const cid = S.corral;
   const list = S.consumos.filter(c => c.cid === cid).sort((a,b) => a.fecha.localeCompare(b.fecha));
@@ -1683,10 +1697,23 @@ function buildConsumos() {
   <div class="panel-title">🌿 Registrar consumo de alimento</div>
   <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Precios vigentes hoy: ${preciosHoy}</div>
   <div class="fgrid">
-    <div class="fg"><label>Fecha</label><input type="date" id="cf" value="${today()}"></div>
-    <div class="fg"><label>Alimento</label><select id="ct" id="ct">${ALIMENTOS.map(a=>`<option value="${a.key}">${a.icon} ${a.label} (${a.unidad})</option>`).join('')}</select></div>
+    <div class="fg"><label>Fecha</label><input type="date" id="cf" value="${today()}" onchange="actualizarStockOpts()"></div>
+    <div class="fg"><label>Alimento</label><select id="ct" onchange="actualizarStockOpts()">${ALIMENTOS.map(a=>`<option value="${a.key}">${a.icon} ${a.label} (${a.unidad})</option>`).join('')}</select></div>
     <div class="fg"><label>Cantidad</label><input type="number" id="cc" placeholder="Ej: 500" min="0.01" step="0.01"></div>
     <div class="fg"><label>Precio unitario ($) <span style="color:var(--text3);font-size:11px">— vacío = usa precio vigente</span></label><input type="number" id="cp" placeholder="Automático según vigencia" min="0" step="0.01"></div>
+    <div class="fg" style="min-width:260px"><label>Stock origen <span style="color:var(--text3);font-size:11px">— opcional</span></label>
+      <select id="con-bolson">
+        <option value="">Sin asignar</option>
+        ${(()=>{
+          const tipo = ALIMENTOS[0]?.key||'maiz';
+          const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+          return bols.map(b=>{
+            const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+            return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${ALIMENTOS.find(a=>a.key===b.tipo)?.unidad||''})</option>`;
+          }).join('');
+        })()}
+      </select>
+    </div>
   </div>
   <div class="stock-info">🐄 Animales en corral en esa fecha: <strong id="stk-disp">—</strong></div>
   <button class="btn btn-primary" id="btn-con">✓ Registrar consumo</button>
@@ -3080,6 +3107,16 @@ function openEditProductoVet(key) {
 }
 
 
+function getBolsonesOpts(tipo) {
+  const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+  const ins = getInsumos().find(a=>a.key===tipo);
+  if (!bols.length) return '<select id="cc-bolson"><option value="">Sin stock disponible</option></select>';
+  return '<select id="cc-bolson">' + bols.map(b=>{
+    const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+    return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${ins?.unidad||''})</option>`;
+  }).join('') + '</select>';
+}
+
 function buildStock() {
   const PVETS = getProductosVet();
   let h = `<div class="section-label">📦 Stock de insumos</div>`;
@@ -3167,6 +3204,61 @@ function buildStock() {
         <td class="tdc"><strong>${fmon(c.frascos*c.precio)}</strong></td>
         <td style="font-size:12px;color:var(--text2)">${c.proveedor||'—'}</td>
         <td class="td-actions"><button class="btn-del" data-del-cv="${c.id}">🗑</button></td>
+      </tr>`;
+    });
+    h += `</tbody></table></div>`;
+  }
+
+  // ── Consumo de campo (no corral) ────────────────────────────────────────
+  h += `<div class="section-label" style="margin-top:18px">🐄 Consumo de campo (rodeos fuera del corral)</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
+    Registrá los consumos en rodeos de campo. <strong>Descuenta del stock pero NO afecta costos de corrales.</strong>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Registrar consumo de campo</div>
+    <div class="fgrid">
+      <div class="fg"><label>Fecha</label><input type="date" id="cc-fecha" value="${today()}"></div>
+      <div class="fg"><label>Insumo</label>
+        <select id="cc-tipo" onchange="document.getElementById('cc-bolson-wrap').innerHTML=getBolsonesOpts(this.value)">
+          ${getInsumos().map(a=>`<option value="${a.key}">${a.icon} ${a.label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg" style="min-width:240px"><label>Stock origen</label>
+        <div id="cc-bolson-wrap">
+          ${(()=>{
+            const tipo = getInsumos()[0]?.key||'maiz';
+            const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+            if (!bols.length) return '<select id="cc-bolson"><option value="">Sin stock disponible</option></select>';
+            return '<select id="cc-bolson">' + bols.map(b=>{
+              const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+              return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${getInsumos().find(a=>a.key===b.tipo)?.unidad||''})</option>`;
+            }).join('') + '</select>';
+          })()}
+        </div>
+      </div>
+      <div class="fg"><label>Cantidad</label><input type="number" id="cc-cant" placeholder="Ej: 500" min="0" step="0.01"></div>
+      <div class="fg" style="min-width:200px"><label>Rodeo / destino</label><input type="text" id="cc-rodeo" placeholder="Ej: Vacas Rodeo 3..."></div>
+      <div class="fg" style="min-width:200px"><label>Observación</label><input type="text" id="cc-obs" placeholder="Opcional"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-cc-add">✓ Registrar consumo</button>
+  </div>`;
+
+  const ccLista = (S.consumosCampo||[]).slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,20);
+  if (ccLista.length) {
+    h += `<div class="tw"><table class="data-table" style="margin-bottom:14px"><thead><tr>
+      <th>Fecha</th><th>Insumo</th><th>Stock origen</th><th class="thc">Cantidad</th><th>Rodeo</th><th>Obs.</th><th>Acc.</th>
+    </tr></thead><tbody>`;
+    ccLista.forEach(c => {
+      const ins = getInsumos().find(a=>a.key===c.tipo)||{label:c.tipo,unidad:'',icon:'🌿'};
+      const bol = (S.bolsones||[]).find(b=>b.id===c.bolsonId);
+      const campoNom = bol ? (CAMPOS_GANADEROS.find(x=>x.id===bol.campo)?.nombre||bol.campo) : '—';
+      h += `<tr>
+        <td>${fd(c.fecha)}</td><td>${ins.icon} ${ins.label}</td>
+        <td style="font-size:12px;color:var(--text2)">${bol?campoNom+' — '+bol.nombre:'—'}</td>
+        <td class="tdc">${fn(c.cant,1)} ${ins.unidad}</td>
+        <td style="font-size:12px">${c.rodeo||'—'}</td>
+        <td style="font-size:12px;color:var(--text2)">${c.obs||'—'}</td>
+        <td class="td-actions"><button class="btn-del" data-del-cc="${c.id}">🗑</button></td>
       </tr>`;
     });
     h += `</tbody></table></div>`;
@@ -3710,7 +3802,7 @@ function attachEvents() {
         if (!confirm(`¿Importar datos del archivo "${file.name}"?\nEsto reemplazará los datos actuales.`)) return;
         S.ingresos = d.ingresos; S.ventas = d.ventas; S.consumos = d.consumos;
         S.pesadas = d.pesadas||[]; S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{}; S.lotesCerrados = d.lotesCerrados||[]; S.corrales = d.corrales||null;
-        S.tipoCambio = d.tipoCambio||[]; S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null; S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[]; S.bolsones = d.bolsones||[]; S.transferenciasBolson = d.transferenciasBolson||[]; S.comprasVet = d.comprasVet||[]; S.insumosExtra = d.insumosExtra||[]; if(d.moneda) S.moneda = d.moneda;
+        S.tipoCambio = d.tipoCambio||[]; S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null; S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[]; S.bolsones = d.bolsones||[]; S.transferenciasBolson = d.transferenciasBolson||[]; S.comprasVet = d.comprasVet||[]; S.insumosExtra = d.insumosExtra||[]; S.consumosCampo = d.consumosCampo||[]; if(d.moneda) S.moneda = d.moneda;
         save(); setAlert('Datos importados correctamente.', 'g'); render();
       } catch(err) { alert('No se pudo leer el archivo. Asegurate de que sea un backup válido (.json).'); }
     };
@@ -3749,7 +3841,12 @@ function attachEvents() {
     }
     const stk=stockAt(S.corral,f);
     if (stk<=0) { setAlert('No hay animales en el corral en esa fecha.'); render(); return; }
-    S.consumos.push({ id:gid(), cid:S.corral, fecha:f, tipo:t, cant:c, precio:p });
+    const bolsonId = document.getElementById('con-bolson')?.value || null;
+    if (bolsonId) {
+      const stkBol = stockBolson(bolsonId);
+      if (c > stkBol) { setAlert('La cantidad supera el stock del origen ('+fn(stkBol,0)+' disponibles). Verificá o dejá "Sin asignar".'); render(); return; }
+    }
+    S.consumos.push({ id:gid(), cid:S.corral, fecha:f, tipo:t, cant:c, precio:p, bolsonId: bolsonId||null });
     save(); setAlert('Consumo registrado correctamente.','g'); render();
   });
 
@@ -4027,6 +4124,42 @@ function attachEvents() {
       save(); render();
     }
   }));
+
+  // ── STOCK — consumo de campo ─────────────────────────────────────────────
+  const btnCcAdd = document.getElementById('btn-cc-add');
+  if (btnCcAdd) btnCcAdd.addEventListener('click', () => {
+    const fecha    = document.getElementById('cc-fecha').value;
+    const tipo     = document.getElementById('cc-tipo').value;
+    const bolsonId = document.getElementById('cc-bolson')?.value || null;
+    const cant     = Number(document.getElementById('cc-cant').value);
+    const rodeo    = (document.getElementById('cc-rodeo').value||'').trim();
+    const obs      = (document.getElementById('cc-obs').value||'').trim();
+    if (!fecha||!tipo||!cant||cant<=0) { setAlert('Completá fecha, insumo y cantidad.'); render(); return; }
+    if (bolsonId) {
+      const stk = stockBolson(bolsonId);
+      if (cant > stk) { setAlert('La cantidad supera el stock disponible ('+fn(stk,1)+' disponibles).'); render(); return; }
+    }
+    if (!S.consumosCampo) S.consumosCampo = [];
+    S.consumosCampo.push({ id: gid(), fecha, tipo, bolsonId, cant, rodeo, obs });
+    save(); setAlert('Consumo de campo registrado.','g'); render();
+  });
+  const ccTipoEl = document.getElementById('cc-tipo');
+  if (ccTipoEl) ccTipoEl.addEventListener('change', function() {
+    const wrap = document.getElementById('cc-bolson-wrap');
+    if (wrap) wrap.innerHTML = getBolsonesOpts(this.value);
+  });
+  document.querySelectorAll('[data-del-cc]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este consumo?')) {
+      S.consumosCampo = (S.consumosCampo||[]).filter(c=>c.id!==b.dataset.delCc);
+      save(); render();
+    }
+  }));
+
+  // Actualizar stock origen al cambiar alimento en alimentación corral
+  const ctEl = document.getElementById('ct');
+  if (ctEl) ctEl.addEventListener('change', actualizarStockOpts);
+  const cfEl = document.getElementById('cf');
+  if (cfEl) cfEl.addEventListener('change', actualizarStockOpts);
 
   // ── STOCK — compra de veterinaria ────────────────────────────────────────
   const btnCvAdd = document.getElementById('btn-cv-add');
@@ -4315,7 +4448,7 @@ function attachEvents() {
 }
 
 // INIT
-try{const _d={"ingresos":[{"id":"mpteogfvghuxfcl5m7","cid":1,"fecha":"2026-04-14","cant":185,"kg":335,"precio":4500},{"id":"mpvom5yw2ssqr1xrurt","cid":3,"fecha":"2026-05-05","cant":191,"kg":336,"precio":4500},{"id":"mpvorrxays8hyaocli","cid":2,"fecha":"2025-12-16","cant":150,"kg":333,"precio":4000},{"id":"mpvosdsgo8juzaoe49","cid":2,"fecha":"2025-12-16","cant":4,"kg":450,"precio":4000}],"ventas":[{"id":"mpvotoo8a2xflk16gnq","cid":2,"fecha":"2025-12-21","cant":1,"kg":333,"precio":0,"baja":true},{"id":"mpvp6lidbh10a3z61uw","cid":2,"fecha":"2026-03-26","cant":2,"kg":449,"precio":4500},{"id":"mpvp8b2dzw0k7sikwi","cid":2,"fecha":"2026-03-26","cant":1,"kg":405,"precio":4500},{"id":"mpvpb8m64vroj6f696q","cid":2,"fecha":"2026-04-24","cant":33,"kg":515,"precio":4573},{"id":"mpvpdeb49g8mfrgeo8n","cid":2,"fecha":"2026-05-19","cant":33,"kg":509,"precio":4686}],"consumos":[{"id":"mpteothepw7bf2wmt3","cid":1,"fecha":"2026-04-17","tipo":"maiz","cant":8000,"precio":168},{"id":"mptep74iklveyc82ro","cid":1,"fecha":"2026-04-21","tipo":"maiz","cant":16000,"precio":168},{"id":"mptepk0ylpzpt5ppd48","cid":1,"fecha":"2026-04-27","tipo":"maiz","cant":5000,"precio":168},{"id":"mptepw4q3udsw6wjbbv","cid":1,"fecha":"2026-05-08","tipo":"maiz","cant":8000,"precio":168},{"id":"mpteq3wi2s3w1oy9o4f","cid":1,"fecha":"2026-05-14","tipo":"maiz","cant":8000,"precio":168},{"id":"mpter19ebinysft9va8","cid":1,"fecha":"2026-05-18","tipo":"maiz","cant":8000,"precio":168},{"id":"mptera56pgmrcl8r08","cid":1,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mptes3u9w3ut68aehz","cid":1,"fecha":"2026-04-21","tipo":"rollos","cant":6,"precio":100000},{"id":"mptesgq2vnvm1buvucg","cid":1,"fecha":"2026-04-24","tipo":"rollos","cant":5,"precio":100000},{"id":"mptet5nu0ut0tp4tixnl","cid":1,"fecha":"2026-05-02","tipo":"rollos","cant":13,"precio":100000},{"id":"mptetjhlv8vrj4jk6us","cid":1,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteu2oybfczmaemxxr","cid":1,"fecha":"2026-05-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteumt5wevaqidn1o","cid":1,"fecha":"2026-05-18","tipo":"rollos","cant":6,"precio":100000},{"id":"mpteuvysvdh0gqp5x77","cid":1,"fecha":"2026-05-31","tipo":"rollos","cant":6,"precio":100000},{"id":"mptevt9k5ow2k2fb8z6","cid":1,"fecha":"2026-04-17","tipo":"concentrado","cant":800,"precio":530},{"id":"mptew8rd11yb1118wb9","cid":1,"fecha":"2026-04-21","tipo":"concentrado","cant":1600,"precio":530},{"id":"mptewjgh35iqz9xg3mb","cid":1,"fecha":"2026-04-27","tipo":"concentrado","cant":400,"precio":530},{"id":"mptewsc10xsd6k6nesuk","cid":1,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mptex5d5mc428b6ghe","cid":1,"fecha":"2026-05-14","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexczsc82cwl9k6i9","cid":1,"fecha":"2026-05-18","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexmapuejj5d4rg","cid":1,"fecha":"2026-05-21","tipo":"concentrado","cant":250,"precio":530},{"id":"mptexuiodd47mzu1w","cid":1,"fecha":"2026-05-28","tipo":"concentrado","cant":250,"precio":530},{"id":"mptezeap4c6pihlfpxe","cid":1,"fecha":"2026-05-28","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvomlks8r6u19x4nrr","cid":3,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvomvj162qkqid9eli","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvon7a0h5p47u3218s","cid":3,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mpvoo6klxxfhv2sraki","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvooflyolhii9kt4wk","cid":3,"fecha":"2026-05-15","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvop2srpyweh8o8gt","cid":3,"fecha":"2026-05-16","tipo":"rollos","cant":5,"precio":100000},{"id":"mpvopbd97z3xn612cih","cid":3,"fecha":"2026-05-28","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvopntpbx862m9o27v","cid":3,"fecha":"2026-05-28","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvopxulk5s3j1x096i","cid":3,"fecha":"2026-05-29","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvoq68vyq4p8xlwfl","cid":3,"fecha":"2026-05-29","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvostlb0jakykit9mjs","cid":2,"fecha":"2025-12-18","tipo":"maiz","cant":17000,"precio":168},{"id":"mpvot50crr7dhkdjbh","cid":2,"fecha":"2025-12-20","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvou480ons76dfc5a","cid":2,"fecha":"2025-12-23","tipo":"maiz","cant":9000,"precio":168},{"id":"mpvouf586pxw0rr8ks2","cid":2,"fecha":"2026-01-02","tipo":"rollos","cant":12,"precio":100000},{"id":"mpvoupksdlhc2an5g4i","cid":2,"fecha":"2026-01-09","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvouyqxl5cach1xgt","cid":2,"fecha":"2026-01-09","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvovebv29jiyqygsv5","cid":2,"fecha":"2026-01-26","tipo":"rollos","cant":16,"precio":100000},{"id":"mpvovqwwkj5312aej7","cid":2,"fecha":"2026-02-03","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvow48cod23uplzro","cid":2,"fecha":"2026-02-03","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvoyqnirg393omkr3","cid":2,"fecha":"2026-02-09","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvoz0cib2tpdv7chdk","cid":2,"fecha":"2026-02-09","tipo":"concentrado","cant":350,"precio":530},{"id":"mpvoz89gakifye1nvmb","cid":2,"fecha":"2026-02-13","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvozgbob5ac6s5kdub","cid":2,"fecha":"2026-02-13","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvozqroefs8lsncjii","cid":2,"fecha":"2026-02-19","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvozz5k4q63qvps94","cid":2,"fecha":"2026-02-19","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvp0m0yq6p96afyrfj","cid":2,"fecha":"2026-02-23","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp0x5qgtp1367q1oo","cid":2,"fecha":"2026-02-23","tipo":"concentrado","cant":700,"precio":530},{"id":"mpvp16icahq7n1nu04j","cid":2,"fecha":"2026-02-26","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp1ev9rxvy57wy2b","cid":2,"fecha":"2026-02-28","tipo":"maiz","cant":6000,"precio":168},{"id":"mpvp1vje0w8v8b8wemn","cid":2,"fecha":"2026-02-28","tipo":"concentrado","cant":600,"precio":530},{"id":"mpvp26tq2qc0z562nz3","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp2klyxsvxkuqpuk","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp2unmyfvjkgtjxyh","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp33l8hrbw0swur7","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp3fe4qsrd67tnyqn","cid":2,"fecha":"2026-03-06","tipo":"rollos","cant":6,"precio":100000},{"id":"mpvp3n8vfoublxg5rc","cid":2,"fecha":"2026-03-19","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvp3wdxyq3dkg83m9n","cid":2,"fecha":"2026-03-23","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp4ryid9mqlzh96io","cid":2,"fecha":"2026-03-23","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp55hpiu1yk3owxv","cid":2,"fecha":"2026-03-31","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp5dkohsl9p9qsuco","cid":2,"fecha":"2026-04-03","tipo":"maiz","cant":27500,"precio":168},{"id":"mpvp91z4y8ddc3rb3z","cid":2,"fecha":"2026-04-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvp99u67dbddb9ibgv","cid":2,"fecha":"2026-04-17","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvp9jrhjovviqqkins","cid":2,"fecha":"2026-04-24","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvp9rzggyzp4ltmeuc","cid":2,"fecha":"2026-04-29","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvpa00vk910ig6wez","cid":2,"fecha":"2026-05-01","tipo":"rollos","cant":2,"precio":100000},{"id":"mpvpaa4gaimjzf6zjy","cid":2,"fecha":"2026-05-07","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvpbx9ogoqwr4zwelo","cid":2,"fecha":"2026-05-07","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvpc5cmcrubrq1kf0q","cid":2,"fecha":"2026-05-04","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvpcdqodcxlwg55mi","cid":2,"fecha":"2026-05-16","tipo":"rollos","cant":8,"precio":100000},{"id":"mpvpclq54sly8cqgnkx","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpdsuks7ji0ipdm3n","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpe01ooz30g0h6op","cid":2,"fecha":"2026-06-01","tipo":"maiz","cant":4000,"precio":168}],"pesadas":[{"id":"mpvz9511uypyy2yvo6o","cid":2,"fecha":"2026-02-04","cant":153,"kg":405},{"id":"mpvz9fcsvyrskrhgt1","cid":2,"fecha":"2026-03-23","cant":153,"kg":485},{"id":"mpvz9skjwszx9s79rhb","cid":2,"fecha":"2026-05-07","cant":117,"kg":523},{"id":"mpyfp3ha43pza5lwp4x","cid":3,"fecha":"2026-06-02","cant":189,"kg":373},{"id":"mq04ib84dm00oriuxx","cid":1,"fecha":"2026-05-13","cant":185,"kg":388}],"preciosStock":{"1":4300,"2":4300,"3":4300},"pesoObjetivo":{"1":520,"2":520,"3":520},"precioProyectado":{"1":4350,"2":4350,"3":4350},"lotesCerrados":[],"corrales":null,"tipoCambio":[{"id":"mqblfov6c0vgq189han","fecha":"2025-12-01","valor":1425},{"id":"mqblg4hb2pwzt4otjo7","fecha":"2026-01-01","valor":1445},{"id":"mqblghu12uvqjl95b61","fecha":"2026-02-01","valor":1420},{"id":"mqblgu6kxuqc9f6luuh","fecha":"2026-03-01","valor":1365},{"id":"mqblh3utkldzv1kbqja","fecha":"2026-04-01","valor":1365},{"id":"mqblhfl9ldj578gxdj","fecha":"2026-05-01","valor":1375},{"id":"mqblhp52trfrhlbheh8","fecha":"2026-06-01","valor":1395}],"preciosAlim":[{"id":"mqblel0rkmjtymf49er","tipo":"maiz","fecha":"2025-12-01","valor":530},{"id":"mqblexpnizaz9fhi14g","tipo":"rollos","fecha":"2025-12-01","valor":100000},{"id":"mqblf8vj4aqe5dus0eb","tipo":"concentrado","fecha":"2025-12-01","valor":530},{"id":"mqfl2eqm7a0shnle25p","tipo":"sales_mqfkv1bl","fecha":"2026-06-15","valor":500}],"notas":[],"productosVet":[{"key":"suplenut","label":"Suplenut","icon":"💉","precioDefault":750000,"mlFrasco":500,"mlDosis":10},{"key":"adevet","label":"Adevet","icon":"💊","precioDefault":500000,"mlFrasco":250,"mlDosis":4},{"key":"ivermectrina_mqeec1m0","label":"Ivermectrina","icon":"💉","mlFrasco":500,"mlDosis":5,"precioDefault":75000}],"preciosVet":[],"consumosVet":[{"id":"mqeehi0kesjr9vsale","cid":2,"fecha":"2026-06-14","producto":"suplenut","frascos":1,"animales":60,"precio":750000,"obs":""}],"bolsones":[{"id":"mqfkgd1gr7zusfuhz5q","campo":"misterio","tipo":"maiz","nombre":"Bolson 1","cantInicial":112250,"fecha":"2026-06-15","minimo":5000,"proveedor":"","activo":true},{"id":"mqfkizprjq0qtzrqbi","campo":"misterio","tipo":"maiz","nombre":"Bolson 1","cantInicial":112500,"fecha":"2026-06-15","minimo":0,"proveedor":"","activo":false},{"id":"mqfkjtl0nyznnomwj9c","campo":"misterio","tipo":"rollos","nombre":"Rollos El Misterio #1","cantInicial":1179,"fecha":"2026-06-15","minimo":50,"proveedor":"","activo":true},{"id":"mqfkl6xhhlyo9lf0mqp","campo":"cencerro","tipo":"maiz","nombre":"Bolson 1","cantInicial":352070,"fecha":"2026-06-15","minimo":50000,"proveedor":"","activo":true},{"id":"mqfklz0ytqj3b548g4","campo":"cencerro","tipo":"rollos","nombre":"Rollos El Cencerro #1","cantInicial":137,"fecha":"2026-06-15","minimo":50,"proveedor":"","activo":true},{"id":"mqfl0imp7k3eyugslmb","campo":"cencerro","tipo":"sales_mqfkv1bl","nombre":"Sales El Cencerro #1","cantInicial":252,"fecha":"2026-06-15","minimo":10,"proveedor":"","activo":true},{"id":"mqfln07mjqethtzdw5","campo":"misterio","tipo":"concentrado","nombre":"Concentrado El Misterio #1","cantInicial":121,"fecha":"2026-06-15","minimo":10,"proveedor":"","activo":true}],"transferenciasBolson":[],"comprasVet":[],"insumosExtra":[{"key":"sales_mqfkv1bl","label":"Sales","icon":"🧂","unidad":"Bolsas"}],"moneda":"ARS"};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;S.tipoCambio=_d.tipoCambio||[];S.preciosAlim=_d.preciosAlim||[];S.notas=_d.notas||[];S.productosVet=_d.productosVet||null;S.preciosVet=_d.preciosVet||[];S.consumosVet=_d.consumosVet||[];S.bolsones=_d.bolsones||[];S.transferenciasBolson=_d.transferenciasBolson||[];S.comprasVet=_d.comprasVet||[];S.insumosExtra=_d.insumosExtra||[];if(_d.moneda)S.moneda=_d.moneda;}catch(e){loadData();}
+try{const _d={"ingresos":[{"id":"mpteogfvghuxfcl5m7","cid":1,"fecha":"2026-04-14","cant":185,"kg":335,"precio":4500},{"id":"mpvom5yw2ssqr1xrurt","cid":3,"fecha":"2026-05-05","cant":191,"kg":336,"precio":4500},{"id":"mpvorrxays8hyaocli","cid":2,"fecha":"2025-12-16","cant":150,"kg":333,"precio":4000},{"id":"mpvosdsgo8juzaoe49","cid":2,"fecha":"2025-12-16","cant":4,"kg":450,"precio":4000}],"ventas":[{"id":"mpvotoo8a2xflk16gnq","cid":2,"fecha":"2025-12-21","cant":1,"kg":333,"precio":0,"baja":true},{"id":"mpvp6lidbh10a3z61uw","cid":2,"fecha":"2026-03-26","cant":2,"kg":449,"precio":4500},{"id":"mpvp8b2dzw0k7sikwi","cid":2,"fecha":"2026-03-26","cant":1,"kg":405,"precio":4500},{"id":"mpvpb8m64vroj6f696q","cid":2,"fecha":"2026-04-24","cant":33,"kg":515,"precio":4573},{"id":"mpvpdeb49g8mfrgeo8n","cid":2,"fecha":"2026-05-19","cant":33,"kg":509,"precio":4686}],"consumos":[{"id":"mpteothepw7bf2wmt3","cid":1,"fecha":"2026-04-17","tipo":"maiz","cant":8000,"precio":168},{"id":"mptep74iklveyc82ro","cid":1,"fecha":"2026-04-21","tipo":"maiz","cant":16000,"precio":168},{"id":"mptepk0ylpzpt5ppd48","cid":1,"fecha":"2026-04-27","tipo":"maiz","cant":5000,"precio":168},{"id":"mptepw4q3udsw6wjbbv","cid":1,"fecha":"2026-05-08","tipo":"maiz","cant":8000,"precio":168},{"id":"mpteq3wi2s3w1oy9o4f","cid":1,"fecha":"2026-05-14","tipo":"maiz","cant":8000,"precio":168},{"id":"mpter19ebinysft9va8","cid":1,"fecha":"2026-05-18","tipo":"maiz","cant":8000,"precio":168},{"id":"mptera56pgmrcl8r08","cid":1,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mptes3u9w3ut68aehz","cid":1,"fecha":"2026-04-21","tipo":"rollos","cant":6,"precio":100000},{"id":"mptesgq2vnvm1buvucg","cid":1,"fecha":"2026-04-24","tipo":"rollos","cant":5,"precio":100000},{"id":"mptet5nu0ut0tp4tixnl","cid":1,"fecha":"2026-05-02","tipo":"rollos","cant":13,"precio":100000},{"id":"mptetjhlv8vrj4jk6us","cid":1,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteu2oybfczmaemxxr","cid":1,"fecha":"2026-05-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteumt5wevaqidn1o","cid":1,"fecha":"2026-05-18","tipo":"rollos","cant":6,"precio":100000},{"id":"mpteuvysvdh0gqp5x77","cid":1,"fecha":"2026-05-31","tipo":"rollos","cant":6,"precio":100000},{"id":"mptevt9k5ow2k2fb8z6","cid":1,"fecha":"2026-04-17","tipo":"concentrado","cant":800,"precio":530},{"id":"mptew8rd11yb1118wb9","cid":1,"fecha":"2026-04-21","tipo":"concentrado","cant":1600,"precio":530},{"id":"mptewjgh35iqz9xg3mb","cid":1,"fecha":"2026-04-27","tipo":"concentrado","cant":400,"precio":530},{"id":"mptewsc10xsd6k6nesuk","cid":1,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mptex5d5mc428b6ghe","cid":1,"fecha":"2026-05-14","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexczsc82cwl9k6i9","cid":1,"fecha":"2026-05-18","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexmapuejj5d4rg","cid":1,"fecha":"2026-05-21","tipo":"concentrado","cant":250,"precio":530},{"id":"mptexuiodd47mzu1w","cid":1,"fecha":"2026-05-28","tipo":"concentrado","cant":250,"precio":530},{"id":"mptezeap4c6pihlfpxe","cid":1,"fecha":"2026-05-28","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvomlks8r6u19x4nrr","cid":3,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvomvj162qkqid9eli","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvon7a0h5p47u3218s","cid":3,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mpvoo6klxxfhv2sraki","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvooflyolhii9kt4wk","cid":3,"fecha":"2026-05-15","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvop2srpyweh8o8gt","cid":3,"fecha":"2026-05-16","tipo":"rollos","cant":5,"precio":100000},{"id":"mpvopbd97z3xn612cih","cid":3,"fecha":"2026-05-28","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvopntpbx862m9o27v","cid":3,"fecha":"2026-05-28","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvopxulk5s3j1x096i","cid":3,"fecha":"2026-05-29","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvoq68vyq4p8xlwfl","cid":3,"fecha":"2026-05-29","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvostlb0jakykit9mjs","cid":2,"fecha":"2025-12-18","tipo":"maiz","cant":17000,"precio":168},{"id":"mpvot50crr7dhkdjbh","cid":2,"fecha":"2025-12-20","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvou480ons76dfc5a","cid":2,"fecha":"2025-12-23","tipo":"maiz","cant":9000,"precio":168},{"id":"mpvouf586pxw0rr8ks2","cid":2,"fecha":"2026-01-02","tipo":"rollos","cant":12,"precio":100000},{"id":"mpvoupksdlhc2an5g4i","cid":2,"fecha":"2026-01-09","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvouyqxl5cach1xgt","cid":2,"fecha":"2026-01-09","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvovebv29jiyqygsv5","cid":2,"fecha":"2026-01-26","tipo":"rollos","cant":16,"precio":100000},{"id":"mpvovqwwkj5312aej7","cid":2,"fecha":"2026-02-03","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvow48cod23uplzro","cid":2,"fecha":"2026-02-03","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvoyqnirg393omkr3","cid":2,"fecha":"2026-02-09","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvoz0cib2tpdv7chdk","cid":2,"fecha":"2026-02-09","tipo":"concentrado","cant":350,"precio":530},{"id":"mpvoz89gakifye1nvmb","cid":2,"fecha":"2026-02-13","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvozgbob5ac6s5kdub","cid":2,"fecha":"2026-02-13","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvozqroefs8lsncjii","cid":2,"fecha":"2026-02-19","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvozz5k4q63qvps94","cid":2,"fecha":"2026-02-19","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvp0m0yq6p96afyrfj","cid":2,"fecha":"2026-02-23","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp0x5qgtp1367q1oo","cid":2,"fecha":"2026-02-23","tipo":"concentrado","cant":700,"precio":530},{"id":"mpvp16icahq7n1nu04j","cid":2,"fecha":"2026-02-26","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp1ev9rxvy57wy2b","cid":2,"fecha":"2026-02-28","tipo":"maiz","cant":6000,"precio":168},{"id":"mpvp1vje0w8v8b8wemn","cid":2,"fecha":"2026-02-28","tipo":"concentrado","cant":600,"precio":530},{"id":"mpvp26tq2qc0z562nz3","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp2klyxsvxkuqpuk","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp2unmyfvjkgtjxyh","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp33l8hrbw0swur7","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp3fe4qsrd67tnyqn","cid":2,"fecha":"2026-03-06","tipo":"rollos","cant":6,"precio":100000},{"id":"mpvp3n8vfoublxg5rc","cid":2,"fecha":"2026-03-19","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvp3wdxyq3dkg83m9n","cid":2,"fecha":"2026-03-23","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp4ryid9mqlzh96io","cid":2,"fecha":"2026-03-23","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp55hpiu1yk3owxv","cid":2,"fecha":"2026-03-31","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp5dkohsl9p9qsuco","cid":2,"fecha":"2026-04-03","tipo":"maiz","cant":27500,"precio":168},{"id":"mpvp91z4y8ddc3rb3z","cid":2,"fecha":"2026-04-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvp99u67dbddb9ibgv","cid":2,"fecha":"2026-04-17","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvp9jrhjovviqqkins","cid":2,"fecha":"2026-04-24","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvp9rzggyzp4ltmeuc","cid":2,"fecha":"2026-04-29","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvpa00vk910ig6wez","cid":2,"fecha":"2026-05-01","tipo":"rollos","cant":2,"precio":100000},{"id":"mpvpaa4gaimjzf6zjy","cid":2,"fecha":"2026-05-07","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvpbx9ogoqwr4zwelo","cid":2,"fecha":"2026-05-07","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvpc5cmcrubrq1kf0q","cid":2,"fecha":"2026-05-04","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvpcdqodcxlwg55mi","cid":2,"fecha":"2026-05-16","tipo":"rollos","cant":8,"precio":100000},{"id":"mpvpclq54sly8cqgnkx","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpdsuks7ji0ipdm3n","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpe01ooz30g0h6op","cid":2,"fecha":"2026-06-01","tipo":"maiz","cant":4000,"precio":168}],"pesadas":[{"id":"mpvz9511uypyy2yvo6o","cid":2,"fecha":"2026-02-04","cant":153,"kg":405},{"id":"mpvz9fcsvyrskrhgt1","cid":2,"fecha":"2026-03-23","cant":153,"kg":485},{"id":"mpvz9skjwszx9s79rhb","cid":2,"fecha":"2026-05-07","cant":117,"kg":523},{"id":"mpyfp3ha43pza5lwp4x","cid":3,"fecha":"2026-06-02","cant":189,"kg":373},{"id":"mq04ib84dm00oriuxx","cid":1,"fecha":"2026-05-13","cant":185,"kg":388}],"preciosStock":{"1":4300,"2":4300,"3":4300},"pesoObjetivo":{"1":520,"2":520,"3":520},"precioProyectado":{"1":4350,"2":4350,"3":4350},"lotesCerrados":[],"corrales":null,"tipoCambio":[{"id":"mqblfov6c0vgq189han","fecha":"2025-12-01","valor":1425},{"id":"mqblg4hb2pwzt4otjo7","fecha":"2026-01-01","valor":1445},{"id":"mqblghu12uvqjl95b61","fecha":"2026-02-01","valor":1420},{"id":"mqblgu6kxuqc9f6luuh","fecha":"2026-03-01","valor":1365},{"id":"mqblh3utkldzv1kbqja","fecha":"2026-04-01","valor":1365},{"id":"mqblhfl9ldj578gxdj","fecha":"2026-05-01","valor":1375},{"id":"mqblhp52trfrhlbheh8","fecha":"2026-06-01","valor":1395}],"preciosAlim":[{"id":"mqblel0rkmjtymf49er","tipo":"maiz","fecha":"2025-12-01","valor":530},{"id":"mqblexpnizaz9fhi14g","tipo":"rollos","fecha":"2025-12-01","valor":100000},{"id":"mqblf8vj4aqe5dus0eb","tipo":"concentrado","fecha":"2025-12-01","valor":530},{"id":"mqfl2eqm7a0shnle25p","tipo":"sales_mqfkv1bl","fecha":"2026-06-15","valor":500}],"notas":[],"productosVet":[{"key":"suplenut","label":"Suplenut","icon":"💉","precioDefault":750000,"mlFrasco":500,"mlDosis":10},{"key":"adevet","label":"Adevet","icon":"💊","precioDefault":500000,"mlFrasco":250,"mlDosis":4},{"key":"ivermectrina_mqeec1m0","label":"Ivermectrina","icon":"💉","mlFrasco":500,"mlDosis":5,"precioDefault":75000}],"preciosVet":[],"consumosVet":[{"id":"mqeehi0kesjr9vsale","cid":2,"fecha":"2026-06-14","producto":"suplenut","frascos":1,"animales":60,"precio":750000,"obs":""}],"bolsones":[{"id":"mqfkgd1gr7zusfuhz5q","campo":"misterio","tipo":"maiz","nombre":"Bolson 1","cantInicial":112250,"fecha":"2026-06-15","minimo":5000,"proveedor":"","activo":true},{"id":"mqfkizprjq0qtzrqbi","campo":"misterio","tipo":"maiz","nombre":"Bolson 1","cantInicial":112500,"fecha":"2026-06-15","minimo":0,"proveedor":"","activo":false},{"id":"mqfkjtl0nyznnomwj9c","campo":"misterio","tipo":"rollos","nombre":"Rollos El Misterio #1","cantInicial":1179,"fecha":"2026-06-15","minimo":50,"proveedor":"","activo":true},{"id":"mqfkl6xhhlyo9lf0mqp","campo":"cencerro","tipo":"maiz","nombre":"Bolson 1","cantInicial":352070,"fecha":"2026-06-15","minimo":50000,"proveedor":"","activo":true},{"id":"mqfklz0ytqj3b548g4","campo":"cencerro","tipo":"rollos","nombre":"Rollos El Cencerro #1","cantInicial":137,"fecha":"2026-06-15","minimo":50,"proveedor":"","activo":true},{"id":"mqfl0imp7k3eyugslmb","campo":"cencerro","tipo":"sales_mqfkv1bl","nombre":"Sales El Cencerro #1","cantInicial":252,"fecha":"2026-06-15","minimo":10,"proveedor":"","activo":true},{"id":"mqfln07mjqethtzdw5","campo":"misterio","tipo":"concentrado","nombre":"Concentrado El Misterio #1","cantInicial":121,"fecha":"2026-06-15","minimo":10,"proveedor":"","activo":true}],"transferenciasBolson":[],"comprasVet":[],"insumosExtra":[{"key":"sales_mqfkv1bl","label":"Sales","icon":"🧂","unidad":"Bolsas"}],"consumosCampo":[],"moneda":"ARS"};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;S.tipoCambio=_d.tipoCambio||[];S.preciosAlim=_d.preciosAlim||[];S.notas=_d.notas||[];S.productosVet=_d.productosVet||null;S.preciosVet=_d.preciosVet||[];S.consumosVet=_d.consumosVet||[];S.bolsones=_d.bolsones||[];S.transferenciasBolson=_d.transferenciasBolson||[];S.comprasVet=_d.comprasVet||[];S.insumosExtra=_d.insumosExtra||[];S.consumosCampo=_d.consumosCampo||[];if(_d.moneda)S.moneda=_d.moneda;}catch(e){loadData();}
 render();
 </script>
 
