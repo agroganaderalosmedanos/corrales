@@ -302,6 +302,7 @@ function setAlert(msg, type='r') {
 }
 
 function save() {
+  syncToGithub();
   try { localStorage.setItem('corrales_data', JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, moneda: S.moneda })); } catch(e) {}
   // If user already chose a file, auto-save silently to it
   if (_fileHandle) {
@@ -309,6 +310,49 @@ function save() {
     const blob = new Blob([html], { type: 'text/html' });
     _fileHandle.createWritable().then(w => w.write(blob).then(() => w.close())).catch(() => { _fileHandle = null; });
   }
+}
+
+// ========== GITHUB SYNC ==========
+const GITHUB_REPO  = 'agroganaderalosmedanos/corrales';
+const GITHUB_FILE  = 'datos.json';
+const GITHUB_API   = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE;
+
+function getGithubToken() { return localStorage.getItem('gh_token') || ''; }
+function setGithubToken(t) { localStorage.setItem('gh_token', t); }
+
+async function syncToGithub() {
+  const token = getGithubToken();
+  if (!token) return; // silently skip if no token
+  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, moneda: S.moneda }, null, 2);
+  try {
+    // Get current SHA
+    const getRes = await fetch(GITHUB_API, { headers: { Authorization: 'token ' + token, 'User-Agent': 'corrales-app' }});
+    let sha = null;
+    if (getRes.ok) { const j = await getRes.json(); sha = j.sha; }
+    // Put new content
+    const body = { message: 'Actualizacion de datos', content: btoa(unescape(encodeURIComponent(data))) };
+    if (sha) body.sha = sha;
+    const putRes = await fetch(GITHUB_API, { method: 'PUT', headers: { Authorization: 'token ' + token, 'Content-Type': 'application/json', 'User-Agent': 'corrales-app' }, body: JSON.stringify(body) });
+    if (!putRes.ok) throw new Error('HTTP ' + putRes.status);
+  } catch(e) { console.warn('GitHub sync error:', e); }
+}
+
+async function loadFromGithub() {
+  const token = getGithubToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(GITHUB_API, { headers: { Authorization: 'token ' + token, 'User-Agent': 'corrales-app' }});
+    if (!res.ok) return false;
+    const j = await res.json();
+    const d = JSON.parse(decodeURIComponent(escape(atob(j.content))));
+    S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; S.pesadas = d.pesadas||[];
+    S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{};
+    S.lotesCerrados = d.lotesCerrados||[]; S.corrales = d.corrales||null; S.tipoCambio = d.tipoCambio||[];
+    S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null;
+    S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[];
+    if (d.moneda) S.moneda = d.moneda;
+    return true;
+  } catch(e) { console.warn('GitHub load error:', e); return false; }
 }
 
 function getHtmlContentRaw() {
@@ -333,6 +377,10 @@ function loadData() {
     const r = localStorage.getItem('corrales_data');
     if (r) { const d = JSON.parse(r); S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; S.pesadas = d.pesadas||[]; S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{}; S.lotesCerrados = d.lotesCerrados||[]; S.tipoCambio = d.tipoCambio||[]; S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null; S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[]; if(d.moneda) S.moneda = d.moneda; }
   } catch(e) {}
+  // Try to load fresh data from GitHub (async — updates after first render)
+  if (getGithubToken()) {
+    loadFromGithub().then(ok => { if (ok) { save(); render(); } });
+  }
 }
 
 // ========== MODAL SYSTEM ==========
@@ -3201,6 +3249,37 @@ function buildConfig() {
     h += `</tbody></table></div>`;
   }
 
+  // ── GITHUB SYNC ──────────────────────────────────────────────────────────
+  const ghToken = getGithubToken();
+  const ghStatus = ghToken ? '✅ Token configurado — los datos se sincronizan con GitHub' : '⚠️ Sin token — los datos se guardan solo en este navegador';
+  h += `<div style="border-top:2px solid var(--border);margin:18px 0 14px"></div>
+  <div class="section-label">☁️ Sincronización con GitHub</div>
+  <div style="font-size:12px;margin-bottom:10px;padding:10px 14px;border-radius:8px;background:${ghToken?'var(--green-bg)':'var(--bg2)'};border:1px solid ${ghToken?'#5DCAA5':'var(--border)'}">
+    <span style="font-weight:600">${ghStatus}</span><br>
+    <span style="color:var(--text2);font-size:11px">Con el token configurado, cada vez que guardás los datos se suben automáticamente a GitHub y están disponibles desde cualquier PC.</span>
+  </div>
+  <div class="panel">
+    <div class="panel-title">${ghToken?'🔄 Actualizar token':'🔑 Configurar token de GitHub'}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">
+      Pegá el token de acceso personal (empieza con <code>ghp_</code>). Se guarda solo en este navegador, nunca se sube a ningún servidor.
+    </div>
+    <div class="fgrid">
+      <div class="fg" style="min-width:340px">
+        <label>Token de acceso personal</label>
+        <input type="password" id="gh-token-input" placeholder="ghp_..." value="${ghToken}" style="font-family:monospace;font-size:12px">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button class="btn btn-primary" id="btn-gh-token-save">✓ Guardar token</button>
+      ${ghToken?`<button class="btn" id="btn-gh-token-test" style="background:var(--bg2)">🔍 Probar conexión</button>`:''}
+      ${ghToken?`<button class="btn btn-del" id="btn-gh-token-clear">🗑 Eliminar token</button>`:''}
+    </div>
+    <div id="gh-token-status" style="font-size:12px;margin-top:8px"></div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.6">
+    💡 Para crear el token: github.com → Foto de perfil → Configuración → Configuración de desarrollador → Tokens de acceso personal → Tokens (clásico) → Generar nuevo token → marcá solo <strong>repo</strong> → Sin caducidad.
+  </div>`;
+
   return h;
 }
 
@@ -3682,6 +3761,39 @@ function attachEvents() {
     const maxId = S.corrales.reduce((m,c)=>Math.max(m,c.id),0);
     S.corrales.push({ id: maxId+1, nombre, activo: true });
     save(); setAlert('Corral "'+nombre+'" agregado correctamente.','g'); render();
+  });
+
+  // ── GITHUB TOKEN ──────────────────────────────────────────────────────────
+  const btnGhSave = document.getElementById('btn-gh-token-save');
+  if (btnGhSave) btnGhSave.addEventListener('click', () => {
+    const t = (document.getElementById('gh-token-input')?.value||'').trim();
+    if (!t) { setAlert('Ingresá el token.'); render(); return; }
+    setGithubToken(t);
+    setAlert('Token guardado. Los datos se sincronizarán con GitHub al guardar.', 'g');
+    render();
+  });
+  const btnGhTest = document.getElementById('btn-gh-token-test');
+  if (btnGhTest) btnGhTest.addEventListener('click', async () => {
+    const statusEl = document.getElementById('gh-token-status');
+    if (statusEl) statusEl.textContent = '⏳ Probando conexión...';
+    try {
+      const res = await fetch(GITHUB_API, { headers: { Authorization: 'token ' + getGithubToken(), 'User-Agent': 'corrales-app' }});
+      if (res.ok) {
+        if (statusEl) { statusEl.textContent = '✅ Conexión exitosa — GitHub responde correctamente.'; statusEl.style.color = 'var(--green)'; }
+      } else {
+        if (statusEl) { statusEl.textContent = '❌ Error ' + res.status + ' — revisá el token.'; statusEl.style.color = 'var(--red)'; }
+      }
+    } catch(e) {
+      if (statusEl) { statusEl.textContent = '❌ Sin conexión a internet.'; statusEl.style.color = 'var(--red)'; }
+    }
+  });
+  const btnGhClear = document.getElementById('btn-gh-token-clear');
+  if (btnGhClear) btnGhClear.addEventListener('click', () => {
+    if (confirm('¿Eliminás el token? Los datos seguirán guardándose en este navegador pero no se sincronizarán con GitHub.')) {
+      localStorage.removeItem('gh_token');
+      setAlert('Token eliminado.', 'g');
+      render();
+    }
   });
 
   // ── VETERINARIA — registrar ───────────────────────────────────────────────
