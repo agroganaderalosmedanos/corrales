@@ -1753,59 +1753,115 @@ function buildConsumos() {
 function buildVentas() {
   const cid = S.corral, stk = stockNow(cid);
   const list = S.ventas.filter(v => v.cid === cid).sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  // ── Formulario registro de salida ──────────────────────────────────────────
   let h = `<div class="panel">
   <div class="panel-title">🐄 Registrar salida de animales</div>
   <div class="stock-info">🐄 Stock disponible: <strong>${fn(stk,0)} animales</strong></div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Completá los datos al momento de la carga. La liquidación (kg en frigorífico, rinde, importe) la completás después cuando llegue la liquidación.</div>
   <div class="fgrid">
-    <div class="fg"><label>Fecha</label><input type="date" id="vf" value="${today()}"></div>
-    <div class="fg"><label>Cantidad</label><input type="number" id="vc" placeholder="Ej: 10" min="1"></div>
-    <div class="fg"><label>Kilos prom.</label><input type="number" id="vk" placeholder="Ej: 380" min="1"></div>
-    <div class="fg"><label>Precio por kg ($) <span style="color:var(--text3);font-size:11px">— vacío = baja/muerte</span></label><input type="number" id="vp" placeholder="Dejar vacío si es baja" min="0"></div>
+    <div class="fg"><label>Fecha salida</label><input type="date" id="vf" value="${today()}"></div>
+    <div class="fg"><label>Tipo</label>
+      <select id="vtipo">
+        <option value="frigorifico">🏭 Frigorífico</option>
+        <option value="en_pie">🤝 Venta en pie</option>
+        <option value="baja">💀 Baja / Muerte</option>
+      </select>
+    </div>
+    <div class="fg"><label>Cantidad</label><input type="number" id="vc" placeholder="Ej: 33" min="1"></div>
+    <div class="fg"><label>Kg prom. en campo</label><input type="number" id="vk" placeholder="Ej: 510" min="1"></div>
+    <div class="fg"><label>Comprador / destino</label><input type="text" id="vcomprador" placeholder="Ej: Frigo San Jorge..."></div>
+    <div class="fg"><label>Precio pactado ($/kg)</label><input type="number" id="vp" placeholder="Ej: 4500" min="0"></div>
+    <div class="fg" style="min-width:280px"><label>Observaciones</label><input type="text" id="vobs" placeholder="Ej: pago a 21 días, precio sujeto a TC..."></div>
   </div>
-  <button class="btn btn-primary" id="btn-ven">✓ Registrar</button>
+  <button class="btn btn-primary" id="btn-ven">✓ Registrar salida</button>
   </div>`;
+
   if (!list.length) {
     h += `<div class="empty"><span class="empty-icon">🧾</span>No hay salidas registradas en este corral.</div>`;
-  } else {
-    h += `<div class="section-label">Historial de salidas</div>
-    <div class="tw"><table class="data-table"><thead><tr>
-      <th>Fecha</th><th>Tipo</th><th>Cabezas</th><th>Kg prom.</th><th>Precio/kg</th><th>Total kg</th><th>Ingreso</th><th>Observaciones</th><th>Acciones</th>
+    return h;
+  }
+
+  // ── Pendientes de liquidación ──────────────────────────────────────────────
+  const pendLiq = list.filter(v => !v.baja && !v.liquidado);
+  if (pendLiq.length) {
+    h += `<div class="section-label" style="color:var(--red)">⏳ Pendientes de liquidación</div>
+    <div class="tw"><table class="data-table" style="margin-bottom:14px"><thead><tr>
+      <th>Fecha</th><th>Tipo</th><th>Cab.</th><th class="thc">Kg campo</th><th>Comprador</th><th class="thc">Precio pactado</th><th>Obs.</th><th>Acción</th>
     </tr></thead><tbody>`;
-    list.forEach(v => {
-      const esBaja = v.baja;
-      const tk = Number(v.cant)*Number(v.kg);
-      const ing = esBaja ? 0 : tk*Number(v.precio);
-      const tipoPill = esBaja
-        ? `<span class="pill" style="background:#fee2e2;color:#991b1b">💀 Baja/Muerte</span>`
-        : `<span class="pill pill-teal">💰 Venta</span>`;
-      h += `<tr>
+    pendLiq.forEach(v => {
+      const tipoPill = v.tipo==='frigorifico'?'🏭 Frigorífico':'🤝 En pie';
+      h += `<tr style="background:var(--bg2)">
         <td>${fd(v.fecha)}</td>
-        <td>${tipoPill}</td>
+        <td><span class="pill pill-blue">${tipoPill}</span></td>
         <td><strong>${fn(v.cant,0)}</strong></td>
-        <td>${fn(v.kg)} kg</td>
-        <td>${esBaja ? '<span style="color:var(--text3)">—</span>' : fmon(v.precio)}</td>
-        <td>${fn(tk)} kg</td>
-        <td>${esBaja ? '<span style="color:var(--text3)">—</span>' : '<strong>'+fmon(ing)+'</strong>'}</td>
+        <td class="tdc">${fn(Number(v.cant)*Number(v.kg),0)} kg</td>
+        <td style="font-size:12px">${v.comprador||'—'}</td>
+        <td class="tdc">${v.precioPactado?fmon(v.precioPactado)+'/kg':'—'}</td>
         <td style="font-size:12px;color:var(--text2)">${v.obs||'—'}</td>
         <td class="td-actions">
-          <button class="btn-edit" data-edit-ven="${v.id}" title="Editar">✏️</button>
-          <button class="btn-del" data-del-ven="${v.id}" title="Eliminar">🗑</button>
+          <button class="btn btn-primary" style="font-size:11px;padding:3px 8px" data-liq-ven="${v.id}">💰 Liquidar</button>
+          <button class="btn-del" data-del-ven="${v.id}">🗑</button>
         </td></tr>`;
     });
     h += `</tbody></table></div>`;
-    const soloVentas = list.filter(v => !v.baja);
-    const tc=soloVentas.reduce((s,v)=>s+Number(v.cant),0);
-    const tk=soloVentas.reduce((s,v)=>s+Number(v.cant)*Number(v.kg),0);
-    const ti=soloVentas.reduce((s,v)=>s+Number(v.cant)*Number(v.kg)*Number(v.precio),0);
-    const tb=list.filter(v=>v.baja).reduce((s,v)=>s+Number(v.cant),0);
-    h += `<div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Total salidas</div><div class="kpi-val">${fn(tc,0)} <span style="font-size:14px;font-weight:400">cab.</span></div></div>
-    <div class="kpi"><div class="kpi-label">Total kg vendidos</div><div class="kpi-val">${fn(tk,0)} <span style="font-size:14px;font-weight:400">kg</span></div></div>
-    <div class="kpi"><div class="kpi-label">Ingreso total</div><div class="kpi-val">${fmon(ti)}</div></div>
-    <div class="kpi"><div class="kpi-label">Precio prom. / kg</div><div class="kpi-val">${tk>0?fmon(ti/tk):'—'}</div></div>
-    ${tb>0?`<div class="kpi" style="border-top:2px solid var(--red)"><div class="kpi-label">Bajas / muertes</div><div class="kpi-val kpi-neg">${fn(tb,0)} cab.</div></div>`:''}
-    </div>`;
   }
+
+  // ── Historial completo ─────────────────────────────────────────────────────
+  h += `<div class="section-label">Historial de salidas</div>
+  <div class="tw"><table class="data-table"><thead><tr>
+    <th>Fecha</th><th>Tipo</th><th>Cab.</th><th class="thc">Kg campo</th><th>Comprador</th>
+    <th class="thc">Kg frigo/netos</th><th class="thc">Rinde/Desbaste</th><th class="thc">Precio liq.</th><th class="thc">Importe</th><th>Estado</th><th>Acc.</th>
+  </tr></thead><tbody>`;
+
+  list.forEach(v => {
+    const esBaja = v.baja;
+    const kgCampo = Number(v.cant)*Number(v.kg);
+    const importe = v.importeTotal || (v.kgLiquidados && v.precioLiq ? Number(v.kgLiquidados)*Number(v.precioLiq) : 0);
+    const tipoPill = esBaja
+      ? `<span class="pill" style="background:#fee2e2;color:#991b1b">💀 Baja</span>`
+      : v.tipo==='frigorifico'
+        ? `<span class="pill pill-blue">🏭 Frigo</span>`
+        : `<span class="pill pill-teal">🤝 En pie</span>`;
+    const estadoPill = esBaja ? '—'
+      : v.liquidado
+        ? `<span class="pill" style="background:#dcfce7;color:#166534">✓ Liquidado</span>`
+        : `<span class="pill" style="background:#fef3c7;color:#92400e">⏳ Pendiente</span>`;
+    h += `<tr>
+      <td>${fd(v.fecha)}</td>
+      <td>${tipoPill}</td>
+      <td><strong>${fn(v.cant,0)}</strong></td>
+      <td class="tdc">${fn(kgCampo,0)} kg</td>
+      <td style="font-size:12px">${v.comprador||'—'}</td>
+      <td class="tdc">${v.kgLiquidados?fn(v.kgLiquidados,0)+' kg':'—'}</td>
+      <td class="tdc">${v.rinde?fn(v.rinde,1)+'%':v.desbaste?fn(v.desbaste,1)+'%':'—'}</td>
+      <td class="tdc">${v.precioLiq?fmon(v.precioLiq)+'/kg':'—'}</td>
+      <td class="tdc"><strong>${importe>0?fmon(importe):'—'}</strong></td>
+      <td>${estadoPill}</td>
+      <td class="td-actions">
+        <button class="btn-del" data-del-ven="${v.id}">🗑</button>
+      </td></tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  // ── KPIs resumen ───────────────────────────────────────────────────────────
+  const soloVentas = list.filter(v => !v.baja && v.liquidado);
+  const tc = soloVentas.reduce((s,v)=>s+Number(v.cant),0);
+  const tkCampo = soloVentas.reduce((s,v)=>s+Number(v.cant)*Number(v.kg),0);
+  const tkLiq = soloVentas.reduce((s,v)=>s+Number(v.kgLiquidados||0),0);
+  const ti = soloVentas.reduce((s,v)=>s+(v.importeTotal||Number(v.kgLiquidados||0)*Number(v.precioLiq||0)),0);
+  const tb = list.filter(v=>v.baja).reduce((s,v)=>s+Number(v.cant),0);
+  const pendCount = pendLiq.length;
+  h += `<div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Animales vendidos</div><div class="kpi-val">${fn(tc,0)} <span style="font-size:14px;font-weight:400">cab.</span></div></div>
+    <div class="kpi"><div class="kpi-label">Kg vendidos (liquidados)</div><div class="kpi-val">${fn(tkLiq,0)} <span style="font-size:14px;font-weight:400">kg</span></div></div>
+    <div class="kpi"><div class="kpi-label">Ingreso total liquidado</div><div class="kpi-val">${fmon(ti)}</div></div>
+    <div class="kpi"><div class="kpi-label">Precio prom. / kg</div><div class="kpi-val">${tkLiq>0?fmon(ti/tkLiq):'—'}</div></div>
+    ${tkCampo>0&&tkLiq>0?`<div class="kpi"><div class="kpi-label">Rinde prom.</div><div class="kpi-val">${fn(tkLiq/tkCampo*100,1)}%</div></div>`:''}
+    ${tb>0?`<div class="kpi" style="border-top:2px solid var(--red)"><div class="kpi-label">Bajas / muertes</div><div class="kpi-val kpi-neg">${fn(tb,0)} cab.</div></div>`:''}
+    ${pendCount>0?`<div class="kpi" style="border-top:2px solid #f59e0b"><div class="kpi-label">Pendientes de liquidación</div><div class="kpi-val" style="color:#f59e0b">${pendCount}</div></div>`:''}
+  </div>`;
+
   return h;
 }
 
@@ -3853,17 +3909,105 @@ function attachEvents() {
   // NEW VENTA / BAJA
   const bv = document.getElementById('btn-ven');
   if (bv) bv.addEventListener('click', () => {
-    const f=document.getElementById('vf').value, c=Number(document.getElementById('vc').value),
-          k=Number(document.getElementById('vk').value),
-          pRaw=document.getElementById('vp').value.trim();
-    const esBaja = pRaw === '';
-    const p = esBaja ? 0 : Number(pRaw);
+    const f       = document.getElementById('vf').value;
+    const tipo    = document.getElementById('vtipo').value;
+    const c       = Number(document.getElementById('vc').value);
+    const k       = Number(document.getElementById('vk').value);
+    const comprador = (document.getElementById('vcomprador').value||'').trim();
+    const pPactado  = Number(document.getElementById('vp').value)||0;
+    const obs       = (document.getElementById('vobs').value||'').trim();
+    const esBaja    = tipo === 'baja';
     if (!f||c<1||k<1) { setAlert('Completá fecha, cantidad y kilos.'); render(); return; }
     const stk=stockAt(S.corral,f);
-    if (c>stk) { setAlert(`No hay ${c} animales disponibles el ${fd(f)}. Hay ${stk}.`); render(); return; }
-    S.ventas.push({ id:gid(), cid:S.corral, fecha:f, cant:c, kg:k, precio:p, baja:esBaja });
-    save(); setAlert(esBaja?'Baja registrada correctamente.':'Venta registrada correctamente.','g'); render();
+    if (c>stk) { setAlert('No hay '+c+' animales disponibles el '+fd(f)+'. Hay '+stk+'.'); render(); return; }
+    S.ventas.push({ id:gid(), cid:S.corral, fecha:f, tipo, cant:c, kg:k,
+      comprador, precioPactado:pPactado, obs, baja:esBaja, liquidado:false,
+      // legacy compat
+      precio: pPactado
+    });
+    save(); setAlert(esBaja?'Baja registrada.':'Salida registrada — pendiente de liquidación.','g'); render();
   });
+
+  // Liquidar venta
+  document.querySelectorAll('[data-liq-ven]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.liqVen;
+    const v  = S.ventas.find(x=>x.id===id);
+    if (!v) return;
+    const esFrigo = v.tipo === 'frigorifico';
+    document.getElementById('modal-container').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">💰 Liquidar — ${esFrigo?'🏭 Frigorífico':'🤝 Venta en pie'} · ${fd(v.fecha)} · ${fn(v.cant,0)} cab.</div>
+          <button class="modal-close" id="mc">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px">
+            Kg en campo: ${fn(Number(v.cant)*Number(v.kg),0)} kg · Precio pactado: ${v.precioPactado?fmon(v.precioPactado)+'/kg':'no cargado'}
+          </div>
+          <div class="fgrid">
+            ${esFrigo?`
+            <div class="fg"><label>Kg vivos en frigorífico</label><input type="number" id="liq-kg" placeholder="Ej: 16900" min="0" step="1"></div>
+            <div class="fg"><label>Rinde % (kg gancho / kg vivo)</label><input type="number" id="liq-rinde" placeholder="Ej: 58" min="0" step="0.1" oninput="calcLiq()"></div>
+            <div class="fg"><label>Precio proporcional ($/kg vivo)</label><input type="number" id="liq-precio" placeholder="Ej: 2610" min="0" step="0.01" oninput="calcLiq()"></div>
+            `:`
+            <div class="fg"><label>Kg brutos pesados</label><input type="number" id="liq-kg" placeholder="Ej: 17000" min="0" step="1" oninput="calcLiq()"></div>
+            <div class="fg"><label>Desbaste %</label><input type="number" id="liq-desbaste" placeholder="Ej: 3" min="0" step="0.1" oninput="calcLiq()"></div>
+            <div class="fg"><label>Precio ($/kg neto)</label><input type="number" id="liq-precio" placeholder="Ej: 4500" min="0" step="0.01" oninput="calcLiq()"></div>
+            `}
+            <div class="fg"><label>Importe total $</label><input type="number" id="liq-importe" placeholder="Calculado automático o ingresá manual" min="0" step="0.01"></div>
+          </div>
+          <div id="liq-preview" style="font-size:13px;font-weight:600;color:var(--green);margin-top:8px"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-cancel" id="mc2">Cancelar</button>
+          <button class="btn btn-save" id="liq-save">✓ Guardar liquidación</button>
+        </div>
+      </div>
+    </div>`;
+    const calcLiq = () => {
+      const kgEl = document.getElementById('liq-kg');
+      const prEl = document.getElementById('liq-precio');
+      const impEl = document.getElementById('liq-importe');
+      const prevEl = document.getElementById('liq-preview');
+      const kg = Number(kgEl?.value)||0;
+      const pr = Number(prEl?.value)||0;
+      let kgNetos = kg;
+      if (!esFrigo) {
+        const desb = Number(document.getElementById('liq-desbaste')?.value)||0;
+        kgNetos = kg * (1 - desb/100);
+      }
+      if (kg > 0 && pr > 0) {
+        const imp = kgNetos * pr;
+        if (!impEl.value) impEl.value = Math.round(imp);
+        if (prevEl) prevEl.textContent = '→ Importe calculado: ' + fmon(imp);
+      }
+    };
+    window.calcLiq = calcLiq;
+    document.getElementById('mc').onclick = closeModal;
+    document.getElementById('mc2').onclick = closeModal;
+    document.getElementById('modal-overlay').onclick = e=>{if(e.target.id==='modal-overlay')closeModal();};
+    document.getElementById('liq-save').onclick = () => {
+      const kg     = Number(document.getElementById('liq-kg')?.value)||0;
+      const precio = Number(document.getElementById('liq-precio')?.value)||0;
+      const importe = Number(document.getElementById('liq-importe')?.value)||0;
+      const rinde  = esFrigo ? Number(document.getElementById('liq-rinde')?.value)||0 : 0;
+      const desb   = !esFrigo ? Number(document.getElementById('liq-desbaste')?.value)||0 : 0;
+      if (!kg||!importe) { alert('Completá los kg y el importe.'); return; }
+      const kgNetos = esFrigo ? kg : kg*(1-desb/100);
+      S.ventas = S.ventas.map(x => x.id===id ? {
+        ...x,
+        liquidado: true,
+        kgLiquidados: kgNetos,
+        rinde: esFrigo ? rinde : null,
+        desbaste: esFrigo ? null : desb,
+        precioLiq: precio,
+        importeTotal: importe,
+        precio: kgNetos > 0 ? importe/kgNetos : x.precio  // update legacy precio
+      } : x);
+      save(); closeModal(); setAlert('Liquidación guardada correctamente.','g'); render();
+    };
+  }));
 
   // PESO OBJETIVO (pesadas)
   document.querySelectorAll('[id^="btn-peso-obj-"]').forEach(b => {
