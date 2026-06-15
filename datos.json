@@ -787,6 +787,12 @@
       "tipo": "concentrado",
       "fecha": "2025-12-01",
       "valor": 530
+    },
+    {
+      "id": "mqfm0vwhcc4w07obvou",
+      "tipo": "sales_mqfkv1bl",
+      "fecha": "2026-06-15",
+      "valor": 510
     }
   ],
   "notas": [],
@@ -829,5 +835,5 @@
       "obs": ""
     }
   ],
-  "moneda": "USD"
+  "moneda": "ARS"
 }
