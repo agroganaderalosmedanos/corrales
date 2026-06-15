@@ -73,7 +73,13 @@
       "fecha": "2026-05-19",
       "cant": 33,
       "kg": 509,
-      "precio": 4686
+      "precio": 4,
+      "liquidado": true,
+      "kgLiquidados": 16810,
+      "rinde": null,
+      "desbaste": 0,
+      "precioLiq": 4595,
+      "importeTotal": 67240
     }
   ],
   "consumos": [
