@@ -71,7 +71,12 @@
       "rinde": null,
       "desbaste": 0,
       "precioLiq": 4129.757,
-      "importeTotal": 70102625
+      "importeTotal": 70102625,
+      "tipo": "frigorifico",
+      "comprador": "",
+      "precioPactado": 4129.756995581738,
+      "obs": "",
+      "baja": false
     },
     {
       "id": "mpvpdeb49g8mfrgeo8n",
