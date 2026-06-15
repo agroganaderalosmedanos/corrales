@@ -5,58 +5,75 @@
       "cid": 1,
       "fecha": "2026-04-14",
       "cant": 185,
-      "kg": 388,
+      "kg": 335,
       "precio": 4500
     },
     {
-      "id": "mpuj3caxf33llmsusb",
-      "cid": 1,
-      "fecha": "2026-06-01",
-      "cant": 10,
-      "kg": 25,
-      "precio": 5000
+      "id": "mpvom5yw2ssqr1xrurt",
+      "cid": 3,
+      "fecha": "2026-05-05",
+      "cant": 191,
+      "kg": 336,
+      "precio": 4500
+    },
+    {
+      "id": "mpvorrxays8hyaocli",
+      "cid": 2,
+      "fecha": "2025-12-16",
+      "cant": 150,
+      "kg": 333,
+      "precio": 4000
+    },
+    {
+      "id": "mpvosdsgo8juzaoe49",
+      "cid": 2,
+      "fecha": "2025-12-16",
+      "cant": 4,
+      "kg": 450,
+      "precio": 4000
     }
   ],
   "ventas": [
     {
-      "id": "mpteygs9g8yenva0ywn",
-      "cid": 1,
-      "fecha": "2026-06-01",
-      "cant": 100,
-      "kg": 530,
-      "precio": 4800
+      "id": "mpvotoo8a2xflk16gnq",
+      "cid": 2,
+      "fecha": "2025-12-21",
+      "cant": 1,
+      "kg": 333,
+      "precio": 0,
+      "baja": true
     },
     {
-      "id": "mptf3msgswew2sba52",
-      "cid": 1,
-      "fecha": "2026-05-10",
-      "cant": 40,
-      "kg": 520,
-      "precio": 4200
-    },
-    {
-      "id": "mptf4mq7fzlybh6r2qp",
-      "cid": 1,
-      "fecha": "2026-05-15",
-      "cant": 25,
-      "kg": 430,
+      "id": "mpvp6lidbh10a3z61uw",
+      "cid": 2,
+      "fecha": "2026-03-26",
+      "cant": 2,
+      "kg": 449,
       "precio": 4500
     },
     {
-      "id": "mptf4tjjajf7r9c9fmj",
-      "cid": 1,
-      "fecha": "2026-05-31",
-      "cant": 10,
-      "kg": 340,
-      "precio": 3000
+      "id": "mpvp8b2dzw0k7sikwi",
+      "cid": 2,
+      "fecha": "2026-03-26",
+      "cant": 1,
+      "kg": 405,
+      "precio": 4500
     },
     {
-      "id": "mptf5i9i1158l2vutx3s",
-      "cid": 1,
-      "fecha": "2026-05-31",
-      "cant": 10,
-      "kg": 400,
-      "precio": 4100
+      "id": "mpvpb8m64vroj6f696q",
+      "cid": 2,
+      "fecha": "2026-04-24",
+      "cant": 33,
+      "kg": 515,
+      "precio": 4573
+    },
+    {
+      "id": "mpvpdeb49g8mfrgeo8n",
+      "cid": 2,
+      "fecha": "2026-05-19",
+      "cant": 33,
+      "kg": 509,
+      "precio": 4686
     }
   ],
   "consumos": [
@@ -231,7 +248,7 @@
     {
       "id": "mptexuiodd47mzu1w",
       "cid": 1,
-      "fecha": "2026-05-31",
+      "fecha": "2026-05-28",
       "tipo": "concentrado",
       "cant": 250,
       "precio": 530
@@ -243,6 +260,574 @@
       "tipo": "maiz",
       "cant": 8000,
       "precio": 168
+    },
+    {
+      "id": "mpvomlks8r6u19x4nrr",
+      "cid": 3,
+      "fecha": "2026-05-08",
+      "tipo": "rollos",
+      "cant": 4,
+      "precio": 100000
+    },
+    {
+      "id": "mpvomvj162qkqid9eli",
+      "cid": 3,
+      "fecha": "2026-05-08",
+      "tipo": "maiz",
+      "cant": 10000,
+      "precio": 168
+    },
+    {
+      "id": "mpvon7a0h5p47u3218s",
+      "cid": 3,
+      "fecha": "2026-05-08",
+      "tipo": "concentrado",
+      "cant": 800,
+      "precio": 530
+    },
+    {
+      "id": "mpvoo6klxxfhv2sraki",
+      "cid": 3,
+      "fecha": "2026-05-08",
+      "tipo": "maiz",
+      "cant": 4000,
+      "precio": 168
+    },
+    {
+      "id": "mpvooflyolhii9kt4wk",
+      "cid": 3,
+      "fecha": "2026-05-15",
+      "tipo": "maiz",
+      "cant": 4000,
+      "precio": 168
+    },
+    {
+      "id": "mpvop2srpyweh8o8gt",
+      "cid": 3,
+      "fecha": "2026-05-16",
+      "tipo": "rollos",
+      "cant": 5,
+      "precio": 100000
+    },
+    {
+      "id": "mpvopbd97z3xn612cih",
+      "cid": 3,
+      "fecha": "2026-05-28",
+      "tipo": "maiz",
+      "cant": 4000,
+      "precio": 168
+    },
+    {
+      "id": "mpvopntpbx862m9o27v",
+      "cid": 3,
+      "fecha": "2026-05-28",
+      "tipo": "concentrado",
+      "cant": 400,
+      "precio": 530
+    },
+    {
+      "id": "mpvopxulk5s3j1x096i",
+      "cid": 3,
+      "fecha": "2026-05-29",
+      "tipo": "maiz",
+      "cant": 4000,
+      "precio": 168
+    },
+    {
+      "id": "mpvoq68vyq4p8xlwfl",
+      "cid": 3,
+      "fecha": "2026-05-29",
+      "tipo": "concentrado",
+      "cant": 400,
+      "precio": 530
+    },
+    {
+      "id": "mpvostlb0jakykit9mjs",
+      "cid": 2,
+      "fecha": "2025-12-18",
+      "tipo": "maiz",
+      "cant": 17000,
+      "precio": 168
+    },
+    {
+      "id": "mpvot50crr7dhkdjbh",
+      "cid": 2,
+      "fecha": "2025-12-20",
+      "tipo": "rollos",
+      "cant": 4,
+      "precio": 100000
+    },
+    {
+      "id": "mpvou480ons76dfc5a",
+      "cid": 2,
+      "fecha": "2025-12-23",
+      "tipo": "maiz",
+      "cant": 9000,
+      "precio": 168
+    },
+    {
+      "id": "mpvouf586pxw0rr8ks2",
+      "cid": 2,
+      "fecha": "2026-01-02",
+      "tipo": "rollos",
+      "cant": 12,
+      "precio": 100000
+    },
+    {
+      "id": "mpvoupksdlhc2an5g4i",
+      "cid": 2,
+      "fecha": "2026-01-09",
+      "tipo": "rollos",
+      "cant": 7,
+      "precio": 100000
+    },
+    {
+      "id": "mpvouyqxl5cach1xgt",
+      "cid": 2,
+      "fecha": "2026-01-09",
+      "tipo": "maiz",
+      "cant": 18000,
+      "precio": 168
+    },
+    {
+      "id": "mpvovebv29jiyqygsv5",
+      "cid": 2,
+      "fecha": "2026-01-26",
+      "tipo": "rollos",
+      "cant": 16,
+      "precio": 100000
+    },
+    {
+      "id": "mpvovqwwkj5312aej7",
+      "cid": 2,
+      "fecha": "2026-02-03",
+      "tipo": "maiz",
+      "cant": 12000,
+      "precio": 168
+    },
+    {
+      "id": "mpvow48cod23uplzro",
+      "cid": 2,
+      "fecha": "2026-02-03",
+      "tipo": "concentrado",
+      "cant": 1200,
+      "precio": 530
+    },
+    {
+      "id": "mpvoyqnirg393omkr3",
+      "cid": 2,
+      "fecha": "2026-02-09",
+      "tipo": "maiz",
+      "cant": 3500,
+      "precio": 168
+    },
+    {
+      "id": "mpvoz0cib2tpdv7chdk",
+      "cid": 2,
+      "fecha": "2026-02-09",
+      "tipo": "concentrado",
+      "cant": 350,
+      "precio": 530
+    },
+    {
+      "id": "mpvoz89gakifye1nvmb",
+      "cid": 2,
+      "fecha": "2026-02-13",
+      "tipo": "maiz",
+      "cant": 4000,
+      "precio": 168
+    },
+    {
+      "id": "mpvozgbob5ac6s5kdub",
+      "cid": 2,
+      "fecha": "2026-02-13",
+      "tipo": "concentrado",
+      "cant": 400,
+      "precio": 530
+    },
+    {
+      "id": "mpvozqroefs8lsncjii",
+      "cid": 2,
+      "fecha": "2026-02-19",
+      "tipo": "maiz",
+      "cant": 12000,
+      "precio": 168
+    },
+    {
+      "id": "mpvozz5k4q63qvps94",
+      "cid": 2,
+      "fecha": "2026-02-19",
+      "tipo": "concentrado",
+      "cant": 1200,
+      "precio": 530
+    },
+    {
+      "id": "mpvp0m0yq6p96afyrfj",
+      "cid": 2,
+      "fecha": "2026-02-23",
+      "tipo": "maiz",
+      "cant": 7000,
+      "precio": 168
+    },
+    {
+      "id": "mpvp0x5qgtp1367q1oo",
+      "cid": 2,
+      "fecha": "2026-02-23",
+      "tipo": "concentrado",
+      "cant": 700,
+      "precio": 530
+    },
+    {
+      "id": "mpvp16icahq7n1nu04j",
+      "cid": 2,
+      "fecha": "2026-02-26",
+      "tipo": "rollos",
+      "cant": 3,
+      "precio": 100000
+    },
+    {
+      "id": "mpvp1ev9rxvy57wy2b",
+      "cid": 2,
+      "fecha": "2026-02-28",
+      "tipo": "maiz",
+      "cant": 6000,
+      "precio": 168
+    },
+    {
+      "id": "mpvp1vje0w8v8b8wemn",
+      "cid": 2,
+      "fecha": "2026-02-28",
+      "tipo": "concentrado",
+      "cant": 600,
+      "precio": 530
+    },
+    {
+      "id": "mpvp26tq2qc0z562nz3",
+      "cid": 2,
+      "fecha": "2026-03-06",
+      "tipo": "maiz",
+      "cant": 7500,
+      "precio": 168
+    },
+    {
+      "id": "mpvp2klyxsvxkuqpuk",
+      "cid": 2,
+      "fecha": "2026-03-06",
+      "tipo": "concentrado",
+      "cant": 750,
+      "precio": 530
+    },
+    {
+      "id": "mpvp2unmyfvjkgtjxyh",
+      "cid": 2,
+      "fecha": "2026-03-06",
+      "tipo": "maiz",
+      "cant": 7000,
+      "precio": 168
+    },
+    {
+      "id": "mpvp33l8hrbw0swur7",
+      "cid": 2,
+      "fecha": "2026-03-06",
+      "tipo": "concentrado",
+      "cant": 750,
+      "precio": 530
+    },
+    {
+      "id": "mpvp3fe4qsrd67tnyqn",
+      "cid": 2,
+      "fecha": "2026-03-06",
+      "tipo": "rollos",
+      "cant": 6,
+      "precio": 100000
+    },
+    {
+      "id": "mpvp3n8vfoublxg5rc",
+      "cid": 2,
+      "fecha": "2026-03-19",
+      "tipo": "maiz",
+      "cant": 18000,
+      "precio": 168
+    },
+    {
+      "id": "mpvp3wdxyq3dkg83m9n",
+      "cid": 2,
+      "fecha": "2026-03-23",
+      "tipo": "rollos",
+      "cant": 3,
+      "precio": 100000
+    },
+    {
+      "id": "mpvp4ryid9mqlzh96io",
+      "cid": 2,
+      "fecha": "2026-03-23",
+      "tipo": "maiz",
+      "cant": 7500,
+      "precio": 168
+    },
+    {
+      "id": "mpvp55hpiu1yk3owxv",
+      "cid": 2,
+      "fecha": "2026-03-31",
+      "tipo": "rollos",
+      "cant": 3,
+      "precio": 100000
+    },
+    {
+      "id": "mpvp5dkohsl9p9qsuco",
+      "cid": 2,
+      "fecha": "2026-04-03",
+      "tipo": "maiz",
+      "cant": 27500,
+      "precio": 168
+    },
+    {
+      "id": "mpvp91z4y8ddc3rb3z",
+      "cid": 2,
+      "fecha": "2026-04-14",
+      "tipo": "rollos",
+      "cant": 4,
+      "precio": 100000
+    },
+    {
+      "id": "mpvp99u67dbddb9ibgv",
+      "cid": 2,
+      "fecha": "2026-04-17",
+      "tipo": "maiz",
+      "cant": 10000,
+      "precio": 168
+    },
+    {
+      "id": "mpvp9jrhjovviqqkins",
+      "cid": 2,
+      "fecha": "2026-04-24",
+      "tipo": "rollos",
+      "cant": 7,
+      "precio": 100000
+    },
+    {
+      "id": "mpvp9rzggyzp4ltmeuc",
+      "cid": 2,
+      "fecha": "2026-04-29",
+      "tipo": "maiz",
+      "cant": 3500,
+      "precio": 168
+    },
+    {
+      "id": "mpvpa00vk910ig6wez",
+      "cid": 2,
+      "fecha": "2026-05-01",
+      "tipo": "rollos",
+      "cant": 2,
+      "precio": 100000
+    },
+    {
+      "id": "mpvpaa4gaimjzf6zjy",
+      "cid": 2,
+      "fecha": "2026-05-07",
+      "tipo": "maiz",
+      "cant": 10000,
+      "precio": 168
+    },
+    {
+      "id": "mpvpbx9ogoqwr4zwelo",
+      "cid": 2,
+      "fecha": "2026-05-07",
+      "tipo": "rollos",
+      "cant": 3,
+      "precio": 100000
+    },
+    {
+      "id": "mpvpc5cmcrubrq1kf0q",
+      "cid": 2,
+      "fecha": "2026-05-04",
+      "tipo": "maiz",
+      "cant": 4000,
+      "precio": 168
+    },
+    {
+      "id": "mpvpcdqodcxlwg55mi",
+      "cid": 2,
+      "fecha": "2026-05-16",
+      "tipo": "rollos",
+      "cant": 8,
+      "precio": 100000
+    },
+    {
+      "id": "mpvpclq54sly8cqgnkx",
+      "cid": 2,
+      "fecha": "2026-05-21",
+      "tipo": "maiz",
+      "cant": 8000,
+      "precio": 168
+    },
+    {
+      "id": "mpvpdsuks7ji0ipdm3n",
+      "cid": 2,
+      "fecha": "2026-05-21",
+      "tipo": "maiz",
+      "cant": 8000,
+      "precio": 168
+    },
+    {
+      "id": "mpvpe01ooz30g0h6op",
+      "cid": 2,
+      "fecha": "2026-06-01",
+      "tipo": "maiz",
+      "cant": 4000,
+      "precio": 168
     }
-  ]
+  ],
+  "pesadas": [
+    {
+      "id": "mpvz9511uypyy2yvo6o",
+      "cid": 2,
+      "fecha": "2026-02-04",
+      "cant": 153,
+      "kg": 405
+    },
+    {
+      "id": "mpvz9fcsvyrskrhgt1",
+      "cid": 2,
+      "fecha": "2026-03-23",
+      "cant": 153,
+      "kg": 485
+    },
+    {
+      "id": "mpvz9skjwszx9s79rhb",
+      "cid": 2,
+      "fecha": "2026-05-07",
+      "cant": 117,
+      "kg": 523
+    },
+    {
+      "id": "mpyfp3ha43pza5lwp4x",
+      "cid": 3,
+      "fecha": "2026-06-02",
+      "cant": 189,
+      "kg": 373
+    },
+    {
+      "id": "mq04ib84dm00oriuxx",
+      "cid": 1,
+      "fecha": "2026-05-13",
+      "cant": 185,
+      "kg": 388
+    }
+  ],
+  "preciosStock": {
+    "1": 4300,
+    "2": 4300,
+    "3": 4300
+  },
+  "pesoObjetivo": {
+    "1": 520,
+    "2": 520,
+    "3": 520
+  },
+  "precioProyectado": {
+    "1": 4350,
+    "2": 4350,
+    "3": 4350
+  },
+  "lotesCerrados": [],
+  "corrales": null,
+  "tipoCambio": [
+    {
+      "id": "mqblfov6c0vgq189han",
+      "fecha": "2025-12-01",
+      "valor": 1425
+    },
+    {
+      "id": "mqblg4hb2pwzt4otjo7",
+      "fecha": "2026-01-01",
+      "valor": 1445
+    },
+    {
+      "id": "mqblghu12uvqjl95b61",
+      "fecha": "2026-02-01",
+      "valor": 1420
+    },
+    {
+      "id": "mqblgu6kxuqc9f6luuh",
+      "fecha": "2026-03-01",
+      "valor": 1365
+    },
+    {
+      "id": "mqblh3utkldzv1kbqja",
+      "fecha": "2026-04-01",
+      "valor": 1365
+    },
+    {
+      "id": "mqblhfl9ldj578gxdj",
+      "fecha": "2026-05-01",
+      "valor": 1375
+    },
+    {
+      "id": "mqblhp52trfrhlbheh8",
+      "fecha": "2026-06-01",
+      "valor": 1395
+    }
+  ],
+  "preciosAlim": [
+    {
+      "id": "mqblel0rkmjtymf49er",
+      "tipo": "maiz",
+      "fecha": "2025-12-01",
+      "valor": 530
+    },
+    {
+      "id": "mqblexpnizaz9fhi14g",
+      "tipo": "rollos",
+      "fecha": "2025-12-01",
+      "valor": 100000
+    },
+    {
+      "id": "mqblf8vj4aqe5dus0eb",
+      "tipo": "concentrado",
+      "fecha": "2025-12-01",
+      "valor": 530
+    }
+  ],
+  "notas": [],
+  "productosVet": [
+    {
+      "key": "suplenut",
+      "label": "Suplenut",
+      "icon": "💉",
+      "precioDefault": 750000,
+      "mlFrasco": 500,
+      "mlDosis": 10
+    },
+    {
+      "key": "adevet",
+      "label": "Adevet",
+      "icon": "💊",
+      "precioDefault": 500000,
+      "mlFrasco": 250,
+      "mlDosis": 4
+    },
+    {
+      "key": "ivermectrina_mqeec1m0",
+      "label": "Ivermectrina",
+      "icon": "💉",
+      "mlFrasco": 500,
+      "mlDosis": 5,
+      "precioDefault": 75000
+    }
+  ],
+  "preciosVet": [],
+  "consumosVet": [
+    {
+      "id": "mqeehi0kesjr9vsale",
+      "cid": 2,
+      "fecha": "2026-06-14",
+      "producto": "suplenut",
+      "frascos": 1,
+      "animales": 60,
+      "precio": 750000,
+      "obs": ""
+    }
+  ],
+  "moneda": "ARS"
 }
