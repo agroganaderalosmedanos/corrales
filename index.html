@@ -7,36 +7,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg: #ffffff; --bg2: #f7f7f5; --bg3: #f0eeea;
-  --text: #1a1a18; --text2: #6b6b67; --text3: #9b9b97;
-  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
-  --green: #1D9E75; --green-dark: #0F6E56; --green-darker: #085041;
-  --green-bg: #E1F5EE; --green-text: #085041;
-  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-text: #0C447C;
-  --red: #E24B4A; --red-bg: #FCEBEB; --red-text: #791F1F;
-  --teal-bg: #E1F5EE; --teal-text: #0F6E56;
-  --navy: #0F3D2E; --navy-text: #9FE1CB;
-  --radius: 8px; --radius-lg: 12px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #242422;
-    --text: #f0efe8; --text2: #a0a09a; --text3: #6a6a65;
-    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
-    --green-bg: #0a2e20; --green-text: #5DCAA5;
-    --blue-bg: #0d2540; --blue-text: #85B7EB;
-    --red-bg: #2d1010; --red-text: #F09595;
-    --teal-bg: #0a2e20; --teal-text: #5DCAA5;
-  }
+  --bg: #faf8f4; --bg2: #f3efe6; --bg3: #ece5d6;
+  --text: #2b261f; --text2: #6b6357; --text3: #a39a89;
+  --border: rgba(43,38,31,0.1); --border2: rgba(43,38,31,0.18);
+  --green: #2f6b3f; --green-dark: #1f4d2b; --green-darker: #163a20;
+  --green-bg: #e6efe3; --green-text: #1f4d2b;
+  --blue: #b8860b; --blue-bg: #f5edd8; --blue-text: #8a6508;
+  --red: #b3261e; --red-bg: #fbeae8; --red-text: #8c1d17;
+  --teal-bg: #f6e8e0; --teal-text: #7a3a20;
+  --navy: #1f4d2b; --navy-text: #e6efe3;
+  --radius: 10px; --radius-lg: 16px;
+  --serif: 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
+body { font-family: var(--sans); background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
 .shell { max-width: 1100px; margin: 0 auto; padding: 24px 20px 80px 20px; }
 
 .app-header { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .app-brand { display: flex; align-items: center; gap: 12px; }
 .brand-icon { width: 42px; height: 42px; background: var(--green-dark); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; }
-.brand-name { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+.brand-name { font-family: var(--serif); font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
 .brand-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
 
 .sidenav { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 8px; margin-bottom: 16px; display: flex; gap: 4px; flex-wrap: wrap; }
@@ -174,14 +165,70 @@ function getCorrales(soloActivos=true) {
 // Se actualiza en cada render()
 let CORRALES = [];
 
-const ALIMENTOS = [
+const ALIMENTOS_DEFAULT = [
   { key: 'maiz',        label: 'Maíz',        unidad: 'kg',     icon: '🌽' },
   { key: 'rollos',      label: 'Rollos',      unidad: 'rollos', icon: '🌾' },
   { key: 'concentrado', label: 'Concentrado', unidad: 'kg',     icon: '📦' },
-  { key: 'pasturas',    label: 'Pasturas',    unidad: 'kg',     icon: '🌿' }
+  { key: 'pasturas',    label: 'Pasturas',    unidad: 'kg',     icon: '🌿' },
+];
+// ALIMENTOS es siempre la lista activa (default + personalizados)
+function getInsumos() { return (S.insumosExtra && S.insumosExtra.length) ? [...ALIMENTOS_DEFAULT, ...S.insumosExtra] : ALIMENTOS_DEFAULT; }
+// Para compatibilidad con código existente que usa ALIMENTOS
+const ALIMENTOS = ALIMENTOS_DEFAULT;
+
+// Productos vet — unidad = frasco, precio = por frasco completo
+const PRODUCTOS_VET_DEFAULT = [
+  { key: 'suplenut', label: 'Suplenut', icon: '💉', precioDefault: 750000, mlFrasco: 500, mlDosis: 10 },
+  { key: 'adevet',   label: 'Adevet',   icon: '💊', precioDefault: 500000, mlFrasco: 250, mlDosis: 4  },
+];
+function getProductosVet() { return (S.productosVet && S.productosVet.length) ? S.productosVet : PRODUCTOS_VET_DEFAULT; }
+function precioVetVigente(key, fecha) {
+  const lista = (S.preciosVet||[]).filter(p=>p.key===key&&p.fecha<=fecha).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  if (lista.length) return Number(lista[0].valor);
+  return getProductosVet().find(p=>p.key===key)?.precioDefault || null;
+}
+function precioVetHoy(key) { return precioVetVigente(key, today()); }
+function costoVetTotal(cid) {
+  return (S.consumosVet||[]).filter(v=>v.cid===cid).reduce((s,v)=>s+Number(v.frascos)*Number(v.precio),0);
+}
+function costoVetHastaPesada(cid) {
+  const pes = (S.pesadas||[]).filter(p=>p.cid===cid).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const ultP = pes.length ? pes[pes.length-1] : null;
+  if (!ultP) return costoVetTotal(cid);
+  return (S.consumosVet||[]).filter(v=>v.cid===cid&&v.fecha<=ultP.fecha).reduce((s,v)=>s+Number(v.frascos)*Number(v.precio),0);
+}
+// Campos ganaderos del establecimiento
+const CAMPOS_GANADEROS = [
+  { id: 'cencerro',   nombre: 'El Cencerro' },
+  { id: 'misterio',   nombre: 'El Misterio' },
+  { id: 'clavo_chico',nombre: 'El Clavo Chico' },
 ];
 
-let S = { ingresos: [], ventas: [], consumos: [], pesadas: [], preciosStock: {}, pesoObjetivo: {}, precioProyectado: {}, lotesCerrados: [], corrales: null, notas: [], tipoCambio: [], preciosAlim: [], moneda: 'ARS', page: 'dashboard', corral: 1, alert: null };
+// ── Funciones de stock de insumos ─────────────────────────────────────────
+// Stock de un item: compras - consumos que lo referencian
+function stockBolson(bid) {
+  const b = (S.bolsones||[]).find(x=>x.id===bid);
+  if (!b) return 0;
+  const comprado = Number(b.cantInicial)||0;
+  const consumido = (S.consumos||[]).filter(c=>c.bolsonId===bid).reduce((s,c)=>s+Number(c.cant),0);
+  const consumidoCampo = (S.consumosCampo||[]).filter(c=>c.bolsonId===bid).reduce((s,c)=>s+Number(c.cant),0);
+  const transferidoSalida = (S.transferenciasBolson||[]).filter(t=>t.bolsonOrigen===bid).reduce((s,t)=>s+Number(t.cant),0);
+  const transferidoEntrada = (S.transferenciasBolson||[]).filter(t=>t.bolsonDestino===bid).reduce((s,t)=>s+Number(t.cant),0);
+  return comprado - consumido - consumidoCampo - transferidoSalida + transferidoEntrada;
+}
+// Stock total de un alimento en un campo
+function stockAlimCampo(campoId, tipoAlim) {
+  return (S.bolsones||[]).filter(b=>b.campo===campoId&&b.tipo===tipoAlim&&b.activo!==false)
+    .reduce((s,b)=>s+Math.max(0,stockBolson(b.id)),0);
+}
+// Stock total de un producto vet
+function stockVetProducto(key) {
+  const comprado = (S.comprasVet||[]).filter(c=>c.key===key).reduce((s,c)=>s+Number(c.frascos),0);
+  const consumido = (S.consumosVet||[]).filter(c=>c.producto===key).reduce((s,c)=>s+Number(c.frascos||0),0);
+  return comprado - consumido;
+}
+
+let S = { ingresos: [], ventas: [], consumos: [], pesadas: [], preciosStock: {}, pesoObjetivo: {}, precioProyectado: {}, lotesCerrados: [], corrales: null, notas: [], tipoCambio: [], preciosAlim: [], productosVet: null, preciosVet: [], consumosVet: [], bolsones: [], transferenciasBolson: [], comprasVet: [], insumosExtra: [], consumosCampo: [], moneda: 'ARS', page: 'dashboard', corral: 1, alert: null };
 let chartInst = null, chartInst2 = null;
 
 function gid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -281,7 +328,8 @@ function setAlert(msg, type='r') {
 }
 
 function save() {
-  try { localStorage.setItem('corrales_data', JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales })); } catch(e) {}
+  syncToGithub();
+  try { localStorage.setItem('corrales_data', JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, bolsones: S.bolsones, transferenciasBolson: S.transferenciasBolson, comprasVet: S.comprasVet, insumosExtra: S.insumosExtra, consumosCampo: S.consumosCampo, moneda: S.moneda })); } catch(e) {}
   // If user already chose a file, auto-save silently to it
   if (_fileHandle) {
     const html = getHtmlContentRaw();
@@ -290,8 +338,51 @@ function save() {
   }
 }
 
+// ========== GITHUB SYNC ==========
+const GITHUB_REPO  = 'agroganaderalosmedanos/corrales';
+const GITHUB_FILE  = 'datos.json';
+const GITHUB_API   = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE;
+
+function getGithubToken() { return localStorage.getItem('gh_token') || ''; }
+function setGithubToken(t) { localStorage.setItem('gh_token', t); }
+
+async function syncToGithub() {
+  const token = getGithubToken();
+  if (!token) return; // silently skip if no token
+  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, moneda: S.moneda }, null, 2);
+  try {
+    // Get current SHA
+    const getRes = await fetch(GITHUB_API, { headers: { Authorization: 'token ' + token, 'User-Agent': 'corrales-app' }});
+    let sha = null;
+    if (getRes.ok) { const j = await getRes.json(); sha = j.sha; }
+    // Put new content
+    const body = { message: 'Actualizacion de datos', content: btoa(unescape(encodeURIComponent(data))) };
+    if (sha) body.sha = sha;
+    const putRes = await fetch(GITHUB_API, { method: 'PUT', headers: { Authorization: 'token ' + token, 'Content-Type': 'application/json', 'User-Agent': 'corrales-app' }, body: JSON.stringify(body) });
+    if (!putRes.ok) throw new Error('HTTP ' + putRes.status);
+  } catch(e) { console.warn('GitHub sync error:', e); }
+}
+
+async function loadFromGithub() {
+  const token = getGithubToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(GITHUB_API, { headers: { Authorization: 'token ' + token, 'User-Agent': 'corrales-app' }});
+    if (!res.ok) return false;
+    const j = await res.json();
+    const d = JSON.parse(decodeURIComponent(escape(atob(j.content))));
+    S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; S.pesadas = d.pesadas||[];
+    S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{};
+    S.lotesCerrados = d.lotesCerrados||[]; S.corrales = d.corrales||null; S.tipoCambio = d.tipoCambio||[];
+    S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null;
+    S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[];
+    if (d.moneda) S.moneda = d.moneda;
+    return true;
+  } catch(e) { console.warn('GitHub load error:', e); return false; }
+}
+
 function getHtmlContentRaw() {
-  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales });
+  const data = JSON.stringify({ ingresos: S.ingresos, ventas: S.ventas, consumos: S.consumos, pesadas: S.pesadas, preciosStock: S.preciosStock, pesoObjetivo: S.pesoObjetivo, precioProyectado: S.precioProyectado, lotesCerrados: S.lotesCerrados, corrales: S.corrales, tipoCambio: S.tipoCambio, preciosAlim: S.preciosAlim, notas: S.notas, productosVet: S.productosVet, preciosVet: S.preciosVet, consumosVet: S.consumosVet, bolsones: S.bolsones, transferenciasBolson: S.transferenciasBolson, comprasVet: S.comprasVet, insumosExtra: S.insumosExtra, consumosCampo: S.consumosCampo, moneda: S.moneda });
 
   // Limpiamos #root antes de capturar el outerHTML (evita guardar DOM renderizado)
   const rootEl = document.getElementById('root');
@@ -303,15 +394,19 @@ function getHtmlContentRaw() {
   // Reemplaza el bloque INIT completo (datos + render) con datos frescos
   html = html.replace(
     /\/\/ INIT\ntry\{const _d=[\s\S]*?render\(\);\n<\/script>/,
-    `// INIT\ntry{const _d=${data};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;}catch(e){loadData();}\nrender();\n<\/script>`
+    `// INIT\ntry{const _d=${data};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;S.tipoCambio=_d.tipoCambio||[];S.preciosAlim=_d.preciosAlim||[];S.notas=_d.notas||[];S.productosVet=_d.productosVet||null;S.preciosVet=_d.preciosVet||[];S.consumosVet=_d.consumosVet||[];S.bolsones=_d.bolsones||[];S.transferenciasBolson=_d.transferenciasBolson||[];S.comprasVet=_d.comprasVet||[];S.insumosExtra=_d.insumosExtra||[];S.consumosCampo=_d.consumosCampo||[];if(_d.moneda)S.moneda=_d.moneda;}catch(e){loadData();}\nrender();\n<\/script>`
   );
   return html;
 }
 function loadData() {
   try {
     const r = localStorage.getItem('corrales_data');
-    if (r) { const d = JSON.parse(r); S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; S.pesadas = d.pesadas||[]; S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{}; S.lotesCerrados = d.lotesCerrados||[]; }
+    if (r) { const d = JSON.parse(r); S.ingresos = d.ingresos||[]; S.ventas = d.ventas||[]; S.consumos = d.consumos||[]; S.pesadas = d.pesadas||[]; S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{}; S.lotesCerrados = d.lotesCerrados||[]; S.tipoCambio = d.tipoCambio||[]; S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null; S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[]; S.bolsones = d.bolsones||[]; S.transferenciasBolson = d.transferenciasBolson||[]; S.comprasVet = d.comprasVet||[]; S.insumosExtra = d.insumosExtra||[]; S.consumosCampo = d.consumosCampo||[]; if(d.moneda) S.moneda = d.moneda; }
   } catch(e) {}
+  // Try to load fresh data from GitHub (async — updates after first render)
+  if (getGithubToken()) {
+    loadFromGithub().then(ok => { if (ok) { save(); render(); } });
+  }
 }
 
 // ========== MODAL SYSTEM ==========
@@ -426,22 +521,49 @@ function openEditVenta(id) {
   if (!item) return;
   const corralNombre = CORRALES.find(c => c.id === item.cid)?.nombre || '';
   const stk = stockAt(item.cid, item.fecha) + Number(item.cant);
-  const precioVal = item.baja ? '' : item.precio;
+  const esFrigo = item.tipo === 'frigorifico';
   document.getElementById('modal-container').innerHTML = `
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title">✏️ Editar venta / baja</div>
+        <div class="modal-title">✏️ Editar salida — ${corralNombre}</div>
         <button class="modal-close" id="mc">✕</button>
       </div>
       <div class="modal-body">
-        <div class="modal-info">📍 ${corralNombre} · Stock disponible (sin este registro): <strong>${fn(stk, 0)} animales</strong></div>
+        <div class="modal-info">📍 Stock disponible (sin este registro): <strong>${fn(stk, 0)} animales</strong></div>
+        <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;margin-top:4px">📋 Datos de salida</div>
         <div class="fgrid">
           <div class="fg"><label>Fecha</label><input type="date" id="me-fecha" value="${item.fecha}"></div>
+          <div class="fg"><label>Tipo</label>
+            <select id="me-tipo">
+              <option value="frigorifico" ${item.tipo==='frigorifico'?'selected':''}>🏭 Frigorífico</option>
+              <option value="en_pie" ${item.tipo==='en_pie'?'selected':''}>🤝 Venta en pie</option>
+              <option value="baja" ${item.baja?'selected':''}>💀 Baja / Muerte</option>
+            </select>
+          </div>
           <div class="fg"><label>Cantidad</label><input type="number" id="me-cant" value="${item.cant}" min="1"></div>
-          <div class="fg"><label>Kilos prom.</label><input type="number" id="me-kg" value="${item.kg}" min="1"></div>
-          <div class="fg"><label>Precio por kg ($) <span style="color:var(--text3);font-size:11px">— vacío = baja/muerte</span></label><input type="number" id="me-precio" value="${precioVal}" min="0" placeholder="Vacío si es baja"></div>
+          <div class="fg"><label>Kg prom. en campo</label><input type="number" id="me-kg" value="${item.kg}" min="1"></div>
+          <div class="fg"><label>Comprador</label><input type="text" id="me-comprador" value="${item.comprador||''}"></div>
+          <div class="fg"><label>Precio pactado ($/kg)</label><input type="number" id="me-precio" value="${item.precioPactado||item.precio||''}" min="0"></div>
+          <div class="fg" style="min-width:260px"><label>Observaciones</label><input type="text" id="me-obs" value="${item.obs||''}"></div>
         </div>
+        ${item.liquidado ? `
+        <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+        <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px">💰 Datos de liquidación</div>
+        <div class="fgrid">
+          ${esFrigo?`
+          <div class="fg"><label>Kg vivos en frigorífico</label><input type="number" id="me-liq-kg" value="${item.kgLiquidados||''}" min="0" step="1" oninput="editCalcLiq()"></div>
+          <div class="fg"><label>Rinde %</label><input type="number" id="me-liq-rinde" value="${item.rinde||''}" min="0" step="0.1"></div>
+          <div class="fg"><label>Precio proporcional ($/kg vivo)</label><input type="number" id="me-liq-precio" value="${item.precioLiq||''}" min="0" step="0.01" oninput="editCalcLiq()"></div>
+          `:`
+          <div class="fg"><label>Kg brutos</label><input type="number" id="me-liq-kg" value="${item.kgLiquidados ? Math.round(item.kgLiquidados/(1-(item.desbaste||0)/100)) : ''}" min="0" step="1" oninput="editCalcLiq()"></div>
+          <div class="fg"><label>Desbaste %</label><input type="number" id="me-liq-desbaste" value="${item.desbaste||''}" min="0" step="0.1" oninput="editCalcLiq()"></div>
+          <div class="fg"><label>Precio ($/kg neto)</label><input type="number" id="me-liq-precio" value="${item.precioLiq||''}" min="0" step="0.01" oninput="editCalcLiq()"></div>
+          `}
+          <div class="fg"><label>Importe total $</label><input type="number" id="me-liq-importe" value="${item.importeTotal||''}" min="0" step="0.01"></div>
+        </div>
+        <div id="me-liq-preview" style="font-size:13px;font-weight:600;color:var(--green);margin-top:4px"></div>
+        ` : ''}
       </div>
       <div class="modal-footer">
         <button class="btn btn-cancel" id="mc2">Cancelar</button>
@@ -457,22 +579,54 @@ function openEditVenta(id) {
     const tempVentas = S.ventas.filter(v => v.id !== id);
     const ingF = S.ingresos.filter(i => i.cid === item.cid && i.fecha <= newF).reduce((s,i)=>s+Number(i.cant),0);
     const venF = tempVentas.filter(v => v.cid === item.cid && v.fecha <= newF).reduce((s,v)=>s+Number(v.cant),0);
-    document.querySelector('.modal-info').innerHTML = `📍 ${corralNombre} · Stock disponible en esa fecha: <strong>${fn(ingF - venF, 0)} animales</strong>`;
+    document.querySelector('.modal-info').innerHTML = `📍 Stock disponible en esa fecha: <strong>${fn(ingF - venF, 0)} animales</strong>`;
+  };
+  window.editCalcLiq = () => {
+    const kgEl  = document.getElementById('me-liq-kg');
+    const prEl  = document.getElementById('me-liq-precio');
+    const impEl = document.getElementById('me-liq-importe');
+    const prevEl = document.getElementById('me-liq-preview');
+    const kg = Number(kgEl?.value)||0;
+    const pr = Number(prEl?.value)||0;
+    let kgNetos = kg;
+    if (!esFrigo) {
+      const desb = Number(document.getElementById('me-liq-desbaste')?.value)||0;
+      kgNetos = kg * (1 - desb/100);
+    }
+    if (kg > 0 && pr > 0) {
+      const imp = Math.round(kgNetos * pr);
+      if (impEl) impEl.value = imp;
+      if (prevEl) prevEl.textContent = '→ ' + fn(kgNetos,0) + ' kg × ' + fmon(pr) + '/kg = ' + fmon(imp);
+    }
   };
   document.getElementById('me-save').onclick = () => {
-    const f = document.getElementById('me-fecha').value;
-    const c = Number(document.getElementById('me-cant').value);
-    const k = Number(document.getElementById('me-kg').value);
-    const pRaw = document.getElementById('me-precio').value.trim();
-    const esBaja = pRaw === '';
-    const p = esBaja ? 0 : Number(pRaw);
+    const f        = document.getElementById('me-fecha').value;
+    const tipo     = document.getElementById('me-tipo').value;
+    const c        = Number(document.getElementById('me-cant').value);
+    const k        = Number(document.getElementById('me-kg').value);
+    const comprador = (document.getElementById('me-comprador').value||'').trim();
+    const pPactado = Number(document.getElementById('me-precio').value)||0;
+    const obs      = (document.getElementById('me-obs').value||'').trim();
+    const esBaja   = tipo === 'baja';
     if (!f || c < 1 || k < 1) { alert('Completá fecha, cantidad y kilos.'); return; }
     const tempVentas = S.ventas.filter(v => v.id !== id);
     const ingF = S.ingresos.filter(i => i.cid === item.cid && i.fecha <= f).reduce((s,i)=>s+Number(i.cant),0);
     const venF = tempVentas.filter(v => v.cid === item.cid && v.fecha <= f).reduce((s,v)=>s+Number(v.cant),0);
-    if (c > ingF - venF) { alert(`No hay ${c} animales disponibles en esa fecha.`); return; }
-    S.ventas = S.ventas.map(v => v.id === id ? { ...v, fecha: f, cant: c, kg: k, precio: p, baja: esBaja } : v);
-    save(); closeModal(); setAlert(esBaja ? 'Baja actualizada correctamente.' : 'Venta actualizada correctamente.', 'g'); render();
+    if (c > ingF - venF) { alert('No hay '+c+' animales disponibles en esa fecha.'); return; }
+    let updated = { ...item, fecha:f, tipo, cant:c, kg:k, comprador, precioPactado:pPactado, obs, baja:esBaja, precio:pPactado };
+    // Update liquidacion if present
+    if (item.liquidado) {
+      const kgLiq  = Number(document.getElementById('me-liq-kg')?.value)||0;
+      const prLiq  = Number(document.getElementById('me-liq-precio')?.value)||0;
+      const impLiq = Number(document.getElementById('me-liq-importe')?.value)||0;
+      const rinde  = esFrigo ? Number(document.getElementById('me-liq-rinde')?.value)||0 : null;
+      const desb   = !esFrigo ? Number(document.getElementById('me-liq-desbaste')?.value)||0 : null;
+      const kgNetos = esFrigo ? kgLiq : kgLiq*(1-(desb||0)/100);
+      updated = { ...updated, kgLiquidados:kgNetos, rinde, desbaste:desb, precioLiq:prLiq, importeTotal:impLiq,
+        precio: kgNetos>0 ? impLiq/kgNetos : pPactado };
+    }
+    S.ventas = S.ventas.map(v => v.id === id ? updated : v);
+    save(); closeModal(); setAlert('Salida actualizada correctamente.', 'g'); render();
   };
 }
 
@@ -1305,6 +1459,8 @@ function buildApp() {
     {k:'ventas',      icon:'🐄', l:'Salidas'},
     {k:'costos',      icon:'🧮', l:'Costos'},
     {k:'comparacion', icon:'📊', l:'Comparación'},
+    {k:'veterinaria',  icon:'🩺', l:'Veterinaria'},
+    {k:'stock',         icon:'📦', l:'Stock'},
     {k:'proyeccion',  icon:'🎯', l:'Proyección Salidas'},
     {k:'costo-cierre',icon:'🔮', l:'Costo Proyectado'},
     {k:'historial',   icon:'📋', l:'Historial Lotes'},
@@ -1327,7 +1483,7 @@ function buildApp() {
   nav.forEach(p => { h += `<button class="snav ${S.page===p.k?'active':''}" data-page="${p.k}">${p.icon} ${p.l}</button>`; });
   h += `</div>`;
   if (S.alert) h += `<div class="alert alert-${S.alert.type}">${S.alert.msg}</div>`;
-  const sinCorralBar = ['dashboard','comparacion','proyeccion','costo-cierre','historial','config'];
+  const sinCorralBar = ['dashboard','comparacion','veterinaria','stock','proyeccion','costo-cierre','historial','config'];
   if (!sinCorralBar.includes(S.page)) {
     h += `<div class="corral-bar">`;
     CORRALES.forEach(c => {
@@ -1343,6 +1499,8 @@ function buildApp() {
     case 'ventas':       return h + buildVentas();
     case 'costos':       return h + buildCostos();
     case 'comparacion':  return h + buildComparacion();
+    case 'veterinaria':   return h + buildVeterinaria();
+    case 'stock':         return h + buildStock();
     case 'proyeccion':   return h + buildProyeccion();
     case 'costo-cierre': return h + buildCostoCierre();
     case 'historial':    return h + buildHistorial();
@@ -1360,6 +1518,8 @@ function buildApp() {
     {k:'ventas',      icon:'🐄', l:'Salidas'},
     {k:'costos',      icon:'🧮', l:'Costos'},
     {k:'comparacion', icon:'📊', l:'Comparación'},
+    {k:'veterinaria',  icon:'🩺', l:'Veterinaria'},
+    {k:'stock',         icon:'📦', l:'Stock'},
     {k:'proyeccion',  icon:'🎯', l:'Proyección Salidas'},
     {k:'costo-cierre',icon:'🔮', l:'Costo Proyectado'},
     {k:'historial',   icon:'📋', l:'Historial Lotes'},
@@ -1383,7 +1543,7 @@ function buildApp() {
   nav.forEach(p => { h += `<button class="snav ${S.page===p.k?'active':''}" data-page="${p.k}">${p.icon} ${p.l}</button>`; });
   h += `</div>`;
   if (S.alert) h += `<div class="alert alert-${S.alert.type}">${S.alert.msg}</div>`;
-  const sinCorralBar = ['dashboard','comparacion','proyeccion','costo-cierre','historial','config'];
+  const sinCorralBar = ['dashboard','comparacion','veterinaria','stock','proyeccion','costo-cierre','historial','config'];
   if (!sinCorralBar.includes(S.page)) {
     h += `<div class="corral-bar">`;
     CORRALES.forEach(c => {
@@ -1399,6 +1559,8 @@ function buildApp() {
     case 'ventas':       return h + buildVentas();
     case 'costos':       return h + buildCostos();
     case 'comparacion':  return h + buildComparacion();
+    case 'veterinaria':   return h + buildVeterinaria();
+    case 'stock':         return h + buildStock();
     case 'proyeccion':   return h + buildProyeccion();
     case 'costo-cierre': return h + buildCostoCierre();
     case 'historial':    return h + buildHistorial();
@@ -1408,19 +1570,19 @@ function buildApp() {
 }
 
 function buildDashboard() {
-  let totAn=0, totKgV=0, totIv=0, totIvStock=0, totCC=0, totCA=0, totRes=0, totKgI=0, totKgG=0;
+  let totAn=0, totKgV=0, totIv=0, totIvStock=0, totCC=0, totCA=0, totCV=0, totRes=0, totKgI=0, totKgG=0;
   CORRALES.forEach(c => {
     totAn  += stockNow(c.id);
     totKgV += kgVend(c.id);
     totKgI += kgIngresados(c.id);
     totKgG += kgGanadosHastaPesada(c.id);
-    const iv=ingVentas(c.id), cc=costoCompra(c.id), ca=costoAlim(c.id);
+    const iv=ingVentas(c.id), cc=costoCompra(c.id), ca=costoAlim(c.id), cv=costoVetTotal(c.id);
     const stk=stockNow(c.id);
     const stkP=Number((S.preciosStock||{})[c.id]||0);
     const pes=(S.pesadas||[]).filter(p=>p.cid===c.id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
     const kgPesUlt=pes.length?Number(pes[pes.length-1].kg):0;
     const ivStock=stkP>0&&kgPesUlt>0?stk*kgPesUlt*stkP:0;
-    totIv += iv; totIvStock += ivStock; totCC += cc; totCA += ca; totRes += iv+ivStock-cc-ca;
+    totIv += iv; totIvStock += ivStock; totCC += cc; totCA += ca; totCV += cv; totRes += iv+ivStock-cc-ca;
   });
   const totIvTotal = totIv + totIvStock;
 
@@ -1437,6 +1599,7 @@ function buildDashboard() {
     <div class="kpi" style="${totIvStock>0?'border-top:2px solid var(--green)':''}"><div class="kpi-icon">🏷️</div><div class="kpi-label">Stock valorizado</div><div class="kpi-val ${totIvStock>0?'kpi-pos':''}">${totIvStock>0?fmon(totIvStock):'—'}</div><div class="kpi-sub">${totIvStock>0?`ingresos totales: ${fmon(totIvTotal)}`:'ingresá precio en Costos'}</div></div>
     <div class="kpi"><div class="kpi-icon">🛒</div><div class="kpi-label">Costo de compra</div><div class="kpi-val">${fmon(totCC)}</div></div>
     <div class="kpi"><div class="kpi-icon">🌿</div><div class="kpi-label">Costo de alimentación</div><div class="kpi-val">${fmon(totCA)}</div></div>
+    ${totCV>0?`<div class="kpi" style="border-top:2px solid #9b59b6"><div class="kpi-icon">🩺</div><div class="kpi-label">Costo veterinario</div><div class="kpi-val" style="color:#9b59b6">${fmon(totCV)}</div><div class="kpi-sub">sin vet: ${fmon(totRes)} · con vet: ${fmon(totRes-totCV)}</div></div>`:''}
     <div class="kpi" style="border-top:2px solid ${totRes>=0?'var(--green)':'var(--red)'}">
       <div class="kpi-icon">${totRes>=0?'📈':'📉'}</div>
       <div class="kpi-label">Utilidad neta</div>
@@ -1557,6 +1720,19 @@ function buildDashboard() {
 
 function buildIngresos() { return buildPesadas(); }
 
+function actualizarStockOpts() {
+  const tipoEl = document.getElementById('ct');
+  const bolsonEl = document.getElementById('con-bolson');
+  if (!tipoEl || !bolsonEl) return;
+  const tipo = tipoEl.value;
+  const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+  const alim = ALIMENTOS.find(a=>a.key===tipo)||{unidad:''};
+  bolsonEl.innerHTML = '<option value="">Sin asignar</option>' + bols.map(b=>{
+    const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+    return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${alim.unidad})</option>`;
+  }).join('');
+}
+
 function buildConsumos() {
   const cid = S.corral;
   const list = S.consumos.filter(c => c.cid === cid).sort((a,b) => a.fecha.localeCompare(b.fecha));
@@ -1571,10 +1747,23 @@ function buildConsumos() {
   <div class="panel-title">🌿 Registrar consumo de alimento</div>
   <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Precios vigentes hoy: ${preciosHoy}</div>
   <div class="fgrid">
-    <div class="fg"><label>Fecha</label><input type="date" id="cf" value="${today()}"></div>
-    <div class="fg"><label>Alimento</label><select id="ct" id="ct">${ALIMENTOS.map(a=>`<option value="${a.key}">${a.icon} ${a.label} (${a.unidad})</option>`).join('')}</select></div>
+    <div class="fg"><label>Fecha</label><input type="date" id="cf" value="${today()}" onchange="actualizarStockOpts()"></div>
+    <div class="fg"><label>Alimento</label><select id="ct" onchange="actualizarStockOpts()">${ALIMENTOS.map(a=>`<option value="${a.key}">${a.icon} ${a.label} (${a.unidad})</option>`).join('')}</select></div>
     <div class="fg"><label>Cantidad</label><input type="number" id="cc" placeholder="Ej: 500" min="0.01" step="0.01"></div>
     <div class="fg"><label>Precio unitario ($) <span style="color:var(--text3);font-size:11px">— vacío = usa precio vigente</span></label><input type="number" id="cp" placeholder="Automático según vigencia" min="0" step="0.01"></div>
+    <div class="fg" style="min-width:260px"><label>Stock origen <span style="color:var(--text3);font-size:11px">— opcional</span></label>
+      <select id="con-bolson">
+        <option value="">Sin asignar</option>
+        ${(()=>{
+          const tipo = ALIMENTOS[0]?.key||'maiz';
+          const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+          return bols.map(b=>{
+            const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+            return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${ALIMENTOS.find(a=>a.key===b.tipo)?.unidad||''})</option>`;
+          }).join('');
+        })()}
+      </select>
+    </div>
   </div>
   <div class="stock-info">🐄 Animales en corral en esa fecha: <strong id="stk-disp">—</strong></div>
   <button class="btn btn-primary" id="btn-con">✓ Registrar consumo</button>
@@ -1614,59 +1803,116 @@ function buildConsumos() {
 function buildVentas() {
   const cid = S.corral, stk = stockNow(cid);
   const list = S.ventas.filter(v => v.cid === cid).sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  // ── Formulario registro de salida ──────────────────────────────────────────
   let h = `<div class="panel">
   <div class="panel-title">🐄 Registrar salida de animales</div>
   <div class="stock-info">🐄 Stock disponible: <strong>${fn(stk,0)} animales</strong></div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Completá los datos al momento de la carga. La liquidación (kg en frigorífico, rinde, importe) la completás después cuando llegue la liquidación.</div>
   <div class="fgrid">
-    <div class="fg"><label>Fecha</label><input type="date" id="vf" value="${today()}"></div>
-    <div class="fg"><label>Cantidad</label><input type="number" id="vc" placeholder="Ej: 10" min="1"></div>
-    <div class="fg"><label>Kilos prom.</label><input type="number" id="vk" placeholder="Ej: 380" min="1"></div>
-    <div class="fg"><label>Precio por kg ($) <span style="color:var(--text3);font-size:11px">— vacío = baja/muerte</span></label><input type="number" id="vp" placeholder="Dejar vacío si es baja" min="0"></div>
+    <div class="fg"><label>Fecha salida</label><input type="date" id="vf" value="${today()}"></div>
+    <div class="fg"><label>Tipo</label>
+      <select id="vtipo">
+        <option value="frigorifico">🏭 Frigorífico</option>
+        <option value="en_pie">🤝 Venta en pie</option>
+        <option value="baja">💀 Baja / Muerte</option>
+      </select>
+    </div>
+    <div class="fg"><label>Cantidad</label><input type="number" id="vc" placeholder="Ej: 33" min="1"></div>
+    <div class="fg"><label>Kg prom. en campo</label><input type="number" id="vk" placeholder="Ej: 510" min="1"></div>
+    <div class="fg"><label>Comprador / destino</label><input type="text" id="vcomprador" placeholder="Ej: Frigo San Jorge..."></div>
+    <div class="fg"><label>Precio pactado ($/kg)</label><input type="number" id="vp" placeholder="Ej: 4500" min="0"></div>
+    <div class="fg" style="min-width:280px"><label>Observaciones</label><input type="text" id="vobs" placeholder="Ej: pago a 21 días, precio sujeto a TC..."></div>
   </div>
-  <button class="btn btn-primary" id="btn-ven">✓ Registrar</button>
+  <button class="btn btn-primary" id="btn-ven">✓ Registrar salida</button>
   </div>`;
+
   if (!list.length) {
     h += `<div class="empty"><span class="empty-icon">🧾</span>No hay salidas registradas en este corral.</div>`;
-  } else {
-    h += `<div class="section-label">Historial de salidas</div>
-    <div class="tw"><table class="data-table"><thead><tr>
-      <th>Fecha</th><th>Tipo</th><th>Cabezas</th><th>Kg prom.</th><th>Precio/kg</th><th>Total kg</th><th>Ingreso</th><th>Observaciones</th><th>Acciones</th>
+    return h;
+  }
+
+  // ── Pendientes de liquidación ──────────────────────────────────────────────
+  const pendLiq = list.filter(v => !v.baja && !v.liquidado);
+  if (pendLiq.length) {
+    h += `<div class="section-label" style="color:var(--red)">⏳ Pendientes de liquidación</div>
+    <div class="tw"><table class="data-table" style="margin-bottom:14px"><thead><tr>
+      <th>Fecha</th><th>Tipo</th><th>Cab.</th><th class="thc">Kg campo</th><th>Comprador</th><th class="thc">Precio pactado</th><th>Obs.</th><th>Acción</th>
     </tr></thead><tbody>`;
-    list.forEach(v => {
-      const esBaja = v.baja;
-      const tk = Number(v.cant)*Number(v.kg);
-      const ing = esBaja ? 0 : tk*Number(v.precio);
-      const tipoPill = esBaja
-        ? `<span class="pill" style="background:#fee2e2;color:#991b1b">💀 Baja/Muerte</span>`
-        : `<span class="pill pill-teal">💰 Venta</span>`;
-      h += `<tr>
+    pendLiq.forEach(v => {
+      const tipoPill = v.tipo==='frigorifico'?'🏭 Frigorífico':'🤝 En pie';
+      h += `<tr style="background:var(--bg2)">
         <td>${fd(v.fecha)}</td>
-        <td>${tipoPill}</td>
+        <td><span class="pill pill-blue">${tipoPill}</span></td>
         <td><strong>${fn(v.cant,0)}</strong></td>
-        <td>${fn(v.kg)} kg</td>
-        <td>${esBaja ? '<span style="color:var(--text3)">—</span>' : fp(v.precio)}</td>
-        <td>${fn(tk)} kg</td>
-        <td>${esBaja ? '<span style="color:var(--text3)">—</span>' : '<strong>'+fp(ing)+'</strong>'}</td>
+        <td class="tdc">${fn(Number(v.cant)*Number(v.kg),0)} kg</td>
+        <td style="font-size:12px">${v.comprador||'—'}</td>
+        <td class="tdc">${v.precioPactado?fmon(v.precioPactado)+'/kg':'—'}</td>
         <td style="font-size:12px;color:var(--text2)">${v.obs||'—'}</td>
         <td class="td-actions">
-          <button class="btn-edit" data-edit-ven="${v.id}" title="Editar">✏️</button>
-          <button class="btn-del" data-del-ven="${v.id}" title="Eliminar">🗑</button>
+          <button class="btn btn-primary" style="font-size:11px;padding:3px 8px" data-liq-ven="${v.id}">💰 Liquidar</button>
+          <button class="btn-del" data-del-ven="${v.id}">🗑</button>
         </td></tr>`;
     });
     h += `</tbody></table></div>`;
-    const soloVentas = list.filter(v => !v.baja);
-    const tc=soloVentas.reduce((s,v)=>s+Number(v.cant),0);
-    const tk=soloVentas.reduce((s,v)=>s+Number(v.cant)*Number(v.kg),0);
-    const ti=soloVentas.reduce((s,v)=>s+Number(v.cant)*Number(v.kg)*Number(v.precio),0);
-    const tb=list.filter(v=>v.baja).reduce((s,v)=>s+Number(v.cant),0);
-    h += `<div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Total salidas</div><div class="kpi-val">${fn(tc,0)} <span style="font-size:14px;font-weight:400">cab.</span></div></div>
-    <div class="kpi"><div class="kpi-label">Total kg vendidos</div><div class="kpi-val">${fn(tk,0)} <span style="font-size:14px;font-weight:400">kg</span></div></div>
-    <div class="kpi"><div class="kpi-label">Ingreso total</div><div class="kpi-val">${fmon(ti)}</div></div>
-    <div class="kpi"><div class="kpi-label">Precio prom. / kg</div><div class="kpi-val">${tk>0?fp(ti/tk):'—'}</div></div>
-    ${tb>0?`<div class="kpi" style="border-top:2px solid var(--red)"><div class="kpi-label">Bajas / muertes</div><div class="kpi-val kpi-neg">${fn(tb,0)} cab.</div></div>`:''}
-    </div>`;
   }
+
+  // ── Historial completo ─────────────────────────────────────────────────────
+  h += `<div class="section-label">Historial de salidas</div>
+  <div class="tw"><table class="data-table"><thead><tr>
+    <th>Fecha</th><th>Tipo</th><th>Cab.</th><th class="thc">Kg campo</th><th>Comprador</th>
+    <th class="thc">Kg frigo/netos</th><th class="thc">Rinde/Desbaste</th><th class="thc">Precio liq.</th><th class="thc">Importe</th><th>Estado</th><th>Acc.</th>
+  </tr></thead><tbody>`;
+
+  list.forEach(v => {
+    const esBaja = v.baja;
+    const kgCampo = Number(v.cant)*Number(v.kg);
+    const importe = v.importeTotal || (v.kgLiquidados && v.precioLiq ? Number(v.kgLiquidados)*Number(v.precioLiq) : 0);
+    const tipoPill = esBaja
+      ? `<span class="pill" style="background:#fee2e2;color:#991b1b">💀 Baja</span>`
+      : v.tipo==='frigorifico'
+        ? `<span class="pill pill-blue">🏭 Frigo</span>`
+        : `<span class="pill pill-teal">🤝 En pie</span>`;
+    const estadoPill = esBaja ? '—'
+      : v.liquidado
+        ? `<span class="pill" style="background:#dcfce7;color:#166534">✓ Liquidado</span>`
+        : `<span class="pill" style="background:#fef3c7;color:#92400e">⏳ Pendiente</span>`;
+    h += `<tr>
+      <td>${fd(v.fecha)}</td>
+      <td>${tipoPill}</td>
+      <td><strong>${fn(v.cant,0)}</strong></td>
+      <td class="tdc">${fn(kgCampo,0)} kg</td>
+      <td style="font-size:12px">${v.comprador||'—'}</td>
+      <td class="tdc">${v.kgLiquidados?fn(v.kgLiquidados,0)+' kg':'—'}</td>
+      <td class="tdc">${v.rinde?fn(v.rinde,1)+'%':v.desbaste?fn(v.desbaste,1)+'%':'—'}</td>
+      <td class="tdc">${v.precioLiq?fmon(v.precioLiq)+'/kg':'—'}</td>
+      <td class="tdc"><strong>${importe>0?fmon(importe):'—'}</strong></td>
+      <td>${estadoPill}</td>
+      <td class="td-actions">
+        <button class="btn-edit" data-edit-ven="${v.id}" title="Editar">✏️</button>
+        <button class="btn-del" data-del-ven="${v.id}">🗑</button>
+      </td></tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  // ── KPIs resumen ───────────────────────────────────────────────────────────
+  const soloVentas = list.filter(v => !v.baja && v.liquidado);
+  const tc = soloVentas.reduce((s,v)=>s+Number(v.cant),0);
+  const tkCampo = soloVentas.reduce((s,v)=>s+Number(v.cant)*Number(v.kg),0);
+  const tkLiq = soloVentas.reduce((s,v)=>s+Number(v.kgLiquidados||0),0);
+  const ti = soloVentas.reduce((s,v)=>s+(v.importeTotal||Number(v.kgLiquidados||0)*Number(v.precioLiq||0)),0);
+  const tb = list.filter(v=>v.baja).reduce((s,v)=>s+Number(v.cant),0);
+  const pendCount = pendLiq.length;
+  h += `<div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Animales vendidos</div><div class="kpi-val">${fn(tc,0)} <span style="font-size:14px;font-weight:400">cab.</span></div></div>
+    <div class="kpi"><div class="kpi-label">Kg vendidos (liquidados)</div><div class="kpi-val">${fn(tkLiq,0)} <span style="font-size:14px;font-weight:400">kg</span></div></div>
+    <div class="kpi"><div class="kpi-label">Ingreso total liquidado</div><div class="kpi-val">${fmon(ti)}</div></div>
+    <div class="kpi"><div class="kpi-label">Precio prom. / kg</div><div class="kpi-val">${tkLiq>0?fmon(ti/tkLiq):'—'}</div></div>
+    ${tkCampo>0&&tkLiq>0?`<div class="kpi"><div class="kpi-label">Rinde prom.</div><div class="kpi-val">${fn(tkLiq/tkCampo*100,1)}%</div></div>`:''}
+    ${tb>0?`<div class="kpi" style="border-top:2px solid var(--red)"><div class="kpi-label">Bajas / muertes</div><div class="kpi-val kpi-neg">${fn(tb,0)} cab.</div></div>`:''}
+    ${pendCount>0?`<div class="kpi" style="border-top:2px solid #f59e0b"><div class="kpi-label">Pendientes de liquidación</div><div class="kpi-val" style="color:#f59e0b">${pendCount}</div></div>`:''}
+  </div>`;
+
   return h;
 }
 
@@ -1922,7 +2168,8 @@ function buildCostos() {
     ${stkPrecio>0 && kgPromUltimaPesada===0 ? `<span style="font-size:12px;color:var(--red)">⚠ Ingresá una pesada para valorizar el stock</span>` : ''}
   </div>`;
 
-  const costoVet    = (S.notas||[]).filter(n=>n.cid===cid&&n.costo>0).reduce((s,n)=>s+Number(n.costo),0);
+  const costoVet    = costoVetTotal(cid);
+  const costoVetHP  = costoVetHastaPesada(cid);
   const utilConVet  = util - costoVet;
 
   const fechaInicioC = S.ingresos.filter(i=>i.cid===cid).length ? S.ingresos.filter(i=>i.cid===cid).map(i=>i.fecha).sort()[0] : null;
@@ -1970,8 +2217,8 @@ function buildCostos() {
     <div class="kpi">
       <div class="kpi-icon">🐄</div>
       <div class="kpi-label">Stock valorizado</div>
-      <div class="kpi-val">${stkPrecio>0 ? fp(ivStock) : '—'}</div>
-      <div class="kpi-sub">${fn(stk,0)} animales en corral${stkPrecio>0 ? ' · $'+fn(stkPrecio,0)+'/kg' : ' · ingresá precio'}</div>
+      <div class="kpi-val">${stkPrecio>0 ? fmon(ivStock) : '—'}</div>
+      <div class="kpi-sub">${fn(stk,0)} animales en corral${stkPrecio>0 ? ' · '+fmon(stkPrecio)+'/kg' : ' · ingresá precio'}</div>
     </div>
     <div class="kpi" style="border-top:2px solid var(--green)">
       <div class="kpi-icon">💰</div>
@@ -1986,6 +2233,12 @@ function buildCostos() {
       <div class="kpi-sub">${util>=0?'✓ Ganancia':'⚠ Pérdida'}</div>
     </div>
     ${costoVet>0?`
+    <div class="kpi" style="border-top:2px solid #9b59b6">
+      <div class="kpi-icon">🩺</div>
+      <div class="kpi-label">Costo veterinario</div>
+      <div class="kpi-val" style="color:#9b59b6">${fmon(costoVet)}</div>
+      <div class="kpi-sub">${fmon(costoVetHP)} hasta pesada</div>
+    </div>
     <div class="kpi" style="border-top:2px solid ${utilConVet>=0?'var(--green)':'var(--red)'}">
       <div class="kpi-icon">${utilConVet>=0?'📈':'📉'}</div>
       <div class="kpi-label">Utilidad (con veterinaria)</div>
@@ -2054,8 +2307,8 @@ function buildCostos() {
     <div class="kpi">
       <div class="kpi-icon">💹</div>
       <div class="kpi-label">Precio de venta prom.</div>
-      <div class="kpi-val">${kgV>0?fp(precioVentaProm):'—'}</div>
-      <div class="kpi-sub">$ por kg vendido</div>
+      <div class="kpi-val">${kgV>0?fmon(precioVentaProm):'—'}</div>
+      <div class="kpi-sub">${S.moneda==='USD'?'U$S':'$'} por kg vendido</div>
     </div>
     <div class="kpi" style="border-top:2px solid var(--green)">
       <div class="kpi-icon">📈</div>
@@ -2066,19 +2319,19 @@ function buildCostos() {
     <div class="kpi">
       <div class="kpi-icon">🌾</div>
       <div class="kpi-label">Alim. hasta pesada / kg ganado</div>
-      <div class="kpi-val">${kgG>0?fp(caXkgG):'—'}</div>
+      <div class="kpi-val">${kgG>0?fmon(caXkgG):'—'}</div>
       <div class="kpi-sub">${fmon(caHastaP)} ÷ ${fn(kgG,0)} kg${fUltPesada?` · hasta ${fd(fUltPesada)}`:''}</div>
     </div>
     <div class="kpi">
       <div class="kpi-icon">🐮</div>
       <div class="kpi-label">Alim. hasta pesada / animal</div>
-      <div class="kpi-val">${totalAnimales>0?fp(caXAnimal):'—'}</div>
+      <div class="kpi-val">${totalAnimales>0?fmon(caXAnimal):'—'}</div>
       <div class="kpi-sub">vendidos + stock (${fn(totalAnimales,0)} cab.)</div>
     </div>
     <div class="kpi" style="border-top:2px solid ${margenNeto>=0?'var(--green)':'var(--red)'}">
       <div class="kpi-icon">📐</div>
       <div class="kpi-label">Margen neto / kg vendido</div>
-      <div class="kpi-val ${margenNeto>=0?'kpi-pos':'kpi-neg'}">${kgV>0?fp(margenNeto):'—'}</div>
+      <div class="kpi-val ${margenNeto>=0?'kpi-pos':'kpi-neg'}">${kgV>0?fmon(margenNeto):'—'}</div>
       <div class="kpi-sub">utilidad por kg</div>
     </div>
   </div>`;
@@ -2091,7 +2344,7 @@ function buildCostos() {
         <div class="kpi-icon">⚖️</div>
         <div class="kpi-label">Precio mínimo / kg stock</div>
         <div class="kpi-val ${breakEven&&precioVentaProm>0&&precioVentaProm<breakEven?'kpi-neg':''}">
-          ${breakEven!==null?fp(breakEven):'—'}
+          ${breakEven!==null?fmon(breakEven):'—'}
         </div>
         <div class="kpi-sub">para recuperar el costo total</div>
       </div>
@@ -2120,9 +2373,9 @@ function buildCostos() {
   // ── Tabla resumen de costos ───────────────────────────────────────────────
   h += `<div class="section-label">Resumen de costos — ${cor.nombre}</div>
   <div class="tw"><table class="data-table"><thead><tr>
-    <th>Concepto</th><th class="thc">Importe</th><th class="thc">% del costo total</th><th class="thc">$ / kg*</th>
+    <th>Concepto</th><th class="thc">Importe</th><th class="thc">% del costo total</th><th class="thc">${S.moneda==='USD'?'U$S':'$'} / kg*</th>
   </tr></thead><tbody>
-    <tr><td>🛒 Costo de compra de animales</td><td class="tdc"><strong>${fmon(cc)}</strong></td><td class="tdc">${pct(cc,costoTotal)}</td><td class="tdc">${kgI>0?fp(cc/kgI):'—'} <span style="color:var(--text3);font-size:10px">/ kg ingresado</span></td></tr>`;
+    <tr><td>🛒 Costo de compra de animales</td><td class="tdc"><strong>${fmon(cc)}</strong></td><td class="tdc">${pct(cc,costoTotal)}</td><td class="tdc">${kgI>0?fmon(cc/kgI):'—'} <span style="color:var(--text3);font-size:10px">/ kg ingresado</span></td></tr>`;
 
   ALIMENTOS.forEach(a => {
     const subTot = S.consumos.filter(x=>x.cid===cid&&x.tipo===a.key).reduce((s,x)=>s+Number(x.cant)*Number(x.precio),0);
@@ -2136,14 +2389,18 @@ function buildCostos() {
         : `${fn(cantTot,1)} ${a.unidad}`;
       const importeLabel = fUltPesada
         ? `${fmon(subHP)} <span style="color:var(--text3);font-size:11px">/ ${fmon(subTot)} total</span>`
-        : fp(subTot);
-      h += `<tr><td>&nbsp;&nbsp;&nbsp;${a.icon} ${a.label} <span style="color:var(--text3);font-size:12px">(${cantLabel})</span></td><td class="tdc">${importeLabel}</td><td class="tdc">${pct(subHP,costoTotal)}</td><td class="tdc">${kgG>0?fp(subHP/kgG):'—'}</td></tr>`;
+        : fmon(subTot);
+      h += `<tr><td>&nbsp;&nbsp;&nbsp;${a.icon} ${a.label} <span style="color:var(--text3);font-size:12px">(${cantLabel})</span></td><td class="tdc">${importeLabel}</td><td class="tdc">${pct(subHP,costoTotal)}</td><td class="tdc">${kgG>0?fmon(subHP/kgG):'—'}</td></tr>`;
     }
   });
-  h += `<tr><td>&nbsp;&nbsp;&nbsp;<strong>Subtotal alimentación${fUltPesada?' hasta pesada':''}</strong></td><td class="tdc"><strong>${fmon(caHastaP)}${fUltPesada?` <span style="color:var(--text3);font-size:11px">/ ${fmon(ca)} total</span>`:''}</strong></td><td class="tdc">${pct(caHastaP,costoTotal)}</td><td class="tdc"><strong>${kgG>0?fp(caHastaP/kgG):'—'}</strong></td></tr>`;
-  h += `<tr class="total-row"><td><strong>COSTO TOTAL</strong></td><td class="tdc"><strong>${fmon(cc+caHastaP)}${fUltPesada?` <span style="color:var(--text3);font-size:11px">/ ${fmon(costoTotal)} total</span>`:''}</strong></td><td class="tdc">100%</td><td class="tdc">—</td></tr>`;
+  h += `<tr><td>&nbsp;&nbsp;&nbsp;<strong>Subtotal alimentación${fUltPesada?' hasta pesada':''}</strong></td><td class="tdc"><strong>${fmon(caHastaP)}${fUltPesada?` <span style="color:var(--text3);font-size:11px">/ ${fmon(ca)} total</span>`:''}</strong></td><td class="tdc">${pct(caHastaP,costoTotal)}</td><td class="tdc"><strong>${kgG>0?fmon(caHastaP/kgG):'—'}</strong></td></tr>`;
+  h += `<tr class="total-row"><td><strong>COSTO TOTAL (sin vet.)</strong></td><td class="tdc"><strong>${fmon(cc+caHastaP)}${fUltPesada?` <span style="color:var(--text3);font-size:11px">/ ${fmon(costoTotal)} total</span>`:''}</strong></td><td class="tdc">100%</td><td class="tdc">—</td></tr>`;
+  if (costoVet>0) {
+    h += `<tr style="background:#f5f0ff"><td>🩺 Veterinaria${fUltPesada?' hasta pesada':''}</td><td class="tdc" style="color:#9b59b6"><strong>${fmon(costoVetHP)}${fUltPesada?` <span style="color:var(--text3);font-size:11px">/ ${fmon(costoVet)} total</span>`:''}</strong></td><td class="tdc" style="color:#9b59b6">${pct(costoVetHP,costoTotal+costoVetHP)}</td><td class="tdc" style="color:#9b59b6">${kgG>0?fmon(costoVetHP/kgG):'—'}</td></tr>`;
+    h += `<tr class="total-row" style="background:#e8d5f5"><td><strong>COSTO TOTAL (con vet.)</strong></td><td class="tdc"><strong>${fmon(cc+caHastaP+costoVetHP)}</strong></td><td class="tdc">—</td><td class="tdc"><strong>${kgG>0?fmon((cc+caHastaP+costoVetHP)/kgG):'—'}</strong></td></tr>`;
+  }
   h += `</tbody></table></div>`;
-  if (fUltPesada) h += `<div style="font-size:11px;color:var(--text3);margin-top:4px">* Columna "$ / kg": compra = $ por kg ingresado; alimentación = $ por kg ganado al corte de la última pesada (${fd(fUltPesada)}). Total acumulado en gris.</div>`;
+  if (fUltPesada) h += `<div style="font-size:11px;color:var(--text3);margin-top:4px">* $ / kg: compra = por kg ingresado; alimentación y vet. = por kg ganado al corte de la última pesada (${fd(fUltPesada)}). Total acumulado en gris.</div>`;
 
   return h;
 }
@@ -2210,9 +2467,14 @@ function buildComparacion() {
       if (dias > 0) ganDiaria = (Number(ultima.kg) - kgPromIng) / dias;
     }
 
+    const cv    = costoVetTotal(cid);
+    const cvHP  = costoVetHastaPesada(cid);
+    const cvXkg = kgG > 0 ? cvHP / kgG : null;
+    const utilConVet = ivTotal - costoTotal - cv;
     return { c, cid, ing, stk, vend, kgI, kgV, kgG, kgStk,
              cc, ca, caHP, costoTotal, costoAlim_item, costoAlim_itemHP,
              ccXkg, caXkg, totXkg, ccXan, caXan,
+             cv, cvHP, cvXkg, utilConVet,
              ivVentas, ivStock, ivTotal, util,
              precVentaProm, margenXkg, ganDiaria, kgPromIng, kgPesUlt };  });
 
@@ -2289,31 +2551,42 @@ function buildComparacion() {
     const anyHas = rows.some(r => r.costoAlim_item[a.key] > 0);
     if (!anyHas) return;
     const vals = rows.map(r => r.costoAlim_item[a.key]);
-    h += `<tr><td>&nbsp;&nbsp;&nbsp;${a.icon} ${a.label}</td>${vals.map(v=>`<td class="tdc">${v>0?fp(v):'—'}</td>`).join('')}</tr>`;
+    h += `<tr><td>&nbsp;&nbsp;&nbsp;${a.icon} ${a.label}</td>${vals.map(v=>`<td class="tdc">${v>0?fmon(v):'—'}</td>`).join('')}</tr>`;
   });
   h += `<tr><td><strong>Costo total</strong></td>${rows.map(r=>`<td class="tdc"><strong>${fmon(r.costoTotal)}</strong></td>`).join('')}</tr>`;
 
   // Costo por kg ganado
   h += `<tr class="total-row"><td colspan="${rows.length+1}"><strong>📊 Costo por kg ganado</strong></td></tr>`;
-  h += `<tr><td>Costo compra / kg ganado</td>${rows.map(r=>`<td class="tdc"${tag(r.ccXkg,bestCcXkg,true)}>${r.ccXkg!==null?fp(r.ccXkg):'—'}</td>`).join('')}</tr>`;
-  h += `<tr><td>Costo alim. total / kg ganado</td>${rows.map(r=>`<td class="tdc"${tag(r.caXkg,bestCaXkg,true)}>${r.caXkg!==null?fp(r.caXkg):'—'}</td>`).join('')}</tr>`;
+  h += `<tr><td>Costo compra / kg ganado</td>${rows.map(r=>`<td class="tdc"${tag(r.ccXkg,bestCcXkg,true)}>${r.ccXkg!==null?fmon(r.ccXkg):'—'}</td>`).join('')}</tr>`;
+  h += `<tr><td>Costo alim. total / kg ganado</td>${rows.map(r=>`<td class="tdc"${tag(r.caXkg,bestCaXkg,true)}>${r.caXkg!==null?fmon(r.caXkg):'—'}</td>`).join('')}</tr>`;
   ALIMENTOS.forEach(a => {
     const anyHas = rows.some(r => r.costoAlim_item[a.key] > 0);
     if (!anyHas) return;
     const vals = rows.map(r => r.kgG > 0 && r.costoAlim_itemHP[a.key] > 0 ? r.costoAlim_itemHP[a.key]/r.kgG : null);
     const b = vals.filter(v=>v!==null).length ? Math.min(...vals.filter(v=>v!==null)) : null;
-    h += `<tr><td>&nbsp;&nbsp;&nbsp;${a.icon} ${a.label} / kg ganado</td>${vals.map(v=>`<td class="tdc"${tag(v,b,true)}>${v!==null?fp(v):'—'}</td>`).join('')}</tr>`;
+    h += `<tr><td>&nbsp;&nbsp;&nbsp;${a.icon} ${a.label} / kg ganado</td>${vals.map(v=>`<td class="tdc"${tag(v,b,true)}>${v!==null?fmon(v):'—'}</td>`).join('')}</tr>`;
   });
 
 
+  const anyVet = rows.some(r=>r.cv>0);
+  if (anyVet) {
+    const bestCvXkg = best(rows, r=>r.cvXkg, true);
+    h += `<tr class="total-row" style="background:#e8d5f5"><td colspan="${rows.length+1}"><strong>🩺 Veterinaria</strong></td></tr>`;
+    h += `<tr><td>Costo vet. total</td>${rows.map(r=>`<td class="tdc" style="color:#9b59b6">${r.cv>0?fmon(r.cv):'—'}</td>`).join('')}</tr>`;
+    h += `<tr><td>Costo vet. / kg ganado</td>${rows.map(r=>`<td class="tdc"${r.cvXkg!==null?tag(r.cvXkg,bestCvXkg,true):''} style="color:#9b59b6">${r.cvXkg!==null?fmon(r.cvXkg):'—'}</td>`).join('')}</tr>`;
+  }
   // Ingresos y resultado
   h += `<tr class="total-row"><td colspan="${rows.length+1}"><strong>💰 Ingresos y resultado</strong></td></tr>`;
   h += `<tr><td>Ingreso por ventas</td>${rows.map(r=>`<td class="tdc">${fmon(r.ivVentas)}</td>`).join('')}</tr>`;
-  h += `<tr><td>Stock valorizado</td>${rows.map(r=>`<td class="tdc">${r.ivStock>0?fp(r.ivStock):'—'}</td>`).join('')}</tr>`;
+  h += `<tr><td>Stock valorizado</td>${rows.map(r=>`<td class="tdc">${r.ivStock>0?fmon(r.ivStock):'—'}</td>`).join('')}</tr>`;
   h += `<tr><td>Ingresos totales</td>${rows.map(r=>`<td class="tdc">${fmon(r.ivTotal)}</td>`).join('')}</tr>`;
-  h += `<tr><td>Precio venta prom. / kg</td>${rows.map(r=>`<td class="tdc">${r.precVentaProm!==null?fp(r.precVentaProm):'—'}</td>`).join('')}</tr>`;
-  h += `<tr><td style="color:var(--green);font-weight:600">Utilidad neta</td>${rows.map(r=>`<td class="tdc"${tag(r.util,bestUtil)} style="${r.util<0?'color:var(--red)':''}">${fmon(r.util)}</td>`).join('')}</tr>`;
-  h += `<tr><td>Margen / kg ganado</td>${rows.map(r=>`<td class="tdc"${tag(r.margenXkg,bestMargen)}>${r.margenXkg!==null?fp(r.margenXkg):'—'}</td>`).join('')}</tr>`;
+  h += `<tr><td>Precio venta prom. / kg</td>${rows.map(r=>`<td class="tdc">${r.precVentaProm!==null?fmon(r.precVentaProm):'—'}</td>`).join('')}</tr>`;
+  h += `<tr><td style="color:var(--green);font-weight:600">Utilidad neta (sin vet.)</td>${rows.map(r=>`<td class="tdc"${tag(r.util,bestUtil)} style="${r.util<0?'color:var(--red)':''}">${fmon(r.util)}</td>`).join('')}</tr>`;
+  if (anyVet) {
+    const bestUtilCV = best(rows, r=>r.utilConVet);
+    h += `<tr><td style="color:#9b59b6;font-weight:600">Utilidad neta (con vet.)</td>${rows.map(r=>`<td class="tdc"${tag(r.utilConVet,bestUtilCV)} style="${r.utilConVet<0?'color:var(--red)':'color:#9b59b6'}">${fmon(r.utilConVet)}</td>`).join('')}</tr>`;
+  }
+  h += `<tr><td>Margen / kg ganado</td>${rows.map(r=>`<td class="tdc"${tag(r.margenXkg,bestMargen)}>${r.margenXkg!==null?fmon(r.margenXkg):'—'}</td>`).join('')}</tr>`;
 
   h += `</tbody></table></div>`;
   h += `<div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.6">
@@ -2402,12 +2675,39 @@ function buildProyeccion() {
     if (!ultima) {
       h += `<div class="alert alert-r" style="margin:0">Sin pesadas registradas. Registrá al menos una pesada para calcular la proyección.</div>`;
     } else if (yaAlcanzo) {
-      h += `<div style="background:var(--green-bg);border:0.5px solid #5DCAA5;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px">
-        <span style="font-size:26px">✅</span>
+      h += `<div style=\"background:var(--green-bg);border:0.5px solid #5DCAA5;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px\">
+        <span style=\"font-size:26px\">✅</span>
         <div>
-          <div style="font-size:14px;font-weight:700;color:var(--green-text)">¡Peso objetivo alcanzado!</div>
-          <div style="font-size:12px;color:var(--green-text);margin-top:2px">Promedio actual <strong>${fn(kgActual,1)} kg</strong> — objetivo ${fn(pesoObj,0)} kg. Lote listo para salida.</div>
+          <div style=\"font-size:14px;font-weight:700;color:var(--green-text)\">¡Peso objetivo alcanzado!</div>
+          <div style=\"font-size:12px;color:var(--green-text);margin-top:2px\">Promedio actual <strong>${fn(kgActual,1)} kg</strong> — objetivo ${fn(pesoObj,0)} kg. Lote listo para salida.</div>
         </div>
+      </div>
+      <div class=\"kpi-grid\">
+        <div class=\"kpi\" style=\"border-top:2px solid var(--green)\">
+          <div class=\"kpi-icon\">⚖️</div>
+          <div class=\"kpi-label\">Peso promedio actual</div>
+          <div class=\"kpi-val\">${fn(kgActual,1)} kg/animal</div>
+          <div class=\"kpi-sub\">última pesada ${fd(ultima.fecha)}</div>
+        </div>
+        <div class=\"kpi\" style=\"border-top:2px solid var(--green)\">
+          <div class=\"kpi-icon\">🐄</div>
+          <div class=\"kpi-label\">Kg totales a vender</div>
+          <div class=\"kpi-val\">${fn(stk*kgActual,0)} kg</div>
+          <div class=\"kpi-sub\">${fn(stk,0)} animales × ${fn(kgActual,1)} kg</div>
+        </div>
+        ${precioP>0?`
+        <div class=\"kpi\" style=\"border-top:2px solid var(--green)\">
+          <div class=\"kpi-icon\">💵</div>
+          <div class=\"kpi-label\">Ingreso proyectado</div>
+          <div class=\"kpi-val kpi-pos\">${fmon(stk*kgActual*precioP)}</div>
+          <div class=\"kpi-sub\">${fn(stk,0)} × ${fn(kgActual,1)} kg × ${fmon(precioP)}/kg</div>
+        </div>`:`
+        <div class=\"kpi\" style=\"border-top:2px solid var(--border2)\">
+          <div class=\"kpi-icon\">💵</div>
+          <div class=\"kpi-label\">Ingreso proyectado</div>
+          <div class=\"kpi-val\" style=\"color:var(--text2);font-size:14px\">Ingresá precio estimado →</div>
+          <div class=\"kpi-sub\">completá el campo $/kg arriba</div>
+        </div>`}
       </div>`;
     } else if (diasRestantes !== null) {
       h += `<div class="kpi-grid">
@@ -2706,7 +3006,7 @@ function buildHistorial() {
       <td class="tdc">${fn(l.kgGanados,0)} kg</td>
       <td class="tdc">${l.ganDiaria?fn(l.ganDiaria,3)+' kg/día':'—'}</td>
       <td class="tdc">${fmon(l.costoAlim)}</td>
-      <td class="tdc">${l.kgGanados>0?fp(l.costoAlim/l.kgGanados):'—'}</td>
+      <td class="tdc">${l.kgGanados>0?fmon(l.costoAlim/l.kgGanados):'—'}</td>
       <td class="tdc">${fmon(l.ingVentas)}</td>
       <td class="tdc" style="${uc}">${fmon(util)}</td>
       <td class="td-actions"><button class="btn-del" data-del-lote="${l.id}">🗑</button></td>
@@ -2730,6 +3030,389 @@ function buildHistorial() {
   h += `<div style="font-size:11px;color:var(--text3);margin-top:8px">Los lotes se guardan manualmente cuando el stock llega a 0. Los datos quedan fijos como snapshot del momento del cierre.</div>`;
   return h;
 }
+
+function buildVeterinaria() {
+  const PVETS = getProductosVet();
+  const allVet = (S.consumosVet||[]);
+  const corOpts  = CORRALES.map(c=>`<option value="${c.id}"${c.id===S.corral?' selected':''}>${c.nombre}</option>`).join('');
+  const prodOpts = PVETS.map(p=>`<option value="${p.key}">${p.icon} ${p.label}</option>`).join('');
+
+  let h = `<div class="section-label">🩺 Registro de gastos veterinarios</div>`;
+
+  // Referencia de precios vigentes
+  h += `<div style="font-size:12px;color:var(--text2);margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap;background:var(--bg2);padding:8px 12px;border-radius:8px;border:1px solid var(--border)">`;
+  PVETS.forEach(p => {
+    const prHoy = precioVetHoy(p.key);
+    h += `<span>${p.icon} <strong>${p.label}</strong>: ${prHoy?fmon(prHoy)+'/frasco':'<span style="color:var(--text3)">default '+fmon(p.precioDefault)+'/frasco</span>'}</span>`;
+  });
+  h += `</div>`;
+
+  h += `<div class="panel">
+    <div class="panel-title">Registrar aplicación</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">El precio es <strong>por frasco completo</strong>. Podés ingresar fracciones de frasco (ej: 0.5).</div>
+    <div class="fgrid">
+      <div class="fg"><label>Corral</label><select id="vt-cid">${corOpts}</select></div>
+      <div class="fg"><label>Fecha</label><input type="date" id="vt-fecha" value="${today()}"></div>
+      <div class="fg"><label>Producto</label><select id="vt-producto">${prodOpts}</select></div>
+      <div class="fg"><label>Frascos usados</label><input type="number" id="vt-frascos" placeholder="Ej: 0.5 · 1 · 2.5" min="0" step="0.01"></div>
+      <div class="fg"><label>Animales tratados</label><input type="number" id="vt-animales" placeholder="Ej: 185" min="0" step="1"></div>
+      <div class="fg"><label>Precio / frasco <span style="font-size:11px;color:var(--text3)">(vacío = usa vigente)</span></label><input type="number" id="vt-precio" placeholder="se llena automático" min="0" step="0.01"></div>
+      <div class="fg" style="min-width:260px"><label>Observación</label><input type="text" id="vt-obs" placeholder="Ej: vacunación aftosa, desparasitación..."></div>
+    </div>
+    <div id="vt-precio-ref" style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:4px"></div>
+    <div id="vt-subtotal-ref" style="font-size:13px;font-weight:700;color:#9b59b6;margin-bottom:4px"></div>
+    <div id="vt-warn-stock" style="font-size:12px;color:var(--red);background:#fff0f0;border:1px solid #fcc;border-radius:6px;padding:6px 10px;margin-bottom:6px;display:none"></div>
+    <div id="vt-warn-dosis" style="font-size:12px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px 10px;margin-bottom:6px;display:none"></div>
+    <button class="btn btn-primary" id="btn-vt-add">✓ Registrar</button>
+  </div>`;
+
+  if (!allVet.length) {
+    h += `<div class="panel" style="color:var(--text2);text-align:center;padding:24px">Sin registros veterinarios aún.</div>`;
+    return h;
+  }
+
+  CORRALES.forEach(cor => {
+    const cid   = cor.id;
+    const lista = allVet.filter(v=>v.cid===cid).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    if (!lista.length) return;
+    const totCosto   = lista.reduce((s,v)=>s+Number(v.frascos)*Number(v.precio),0);
+    const totFrascos = {};
+    PVETS.forEach(p => { totFrascos[p.key] = lista.filter(v=>v.producto===p.key).reduce((s,v)=>s+Number(v.frascos),0); });
+    const kgG = kgGanadosHastaPesada(cid);
+
+    h += `<div class="section-label" style="margin-top:14px">🏚️ ${cor.nombre}
+      <span style="color:#9b59b6;font-weight:700;margin-left:8px">${fmon(totCosto)}</span>
+      ${kgG>0?`<span style="color:var(--text2);font-size:12px;font-weight:400;margin-left:8px">· ${fmon(totCosto/kgG)} / kg ganado</span>`:''}
+    </div>`;
+    h += `<div class="tw"><table class="data-table"><thead><tr>
+      <th>Fecha</th><th>Producto</th>
+      <th class="thc">Frascos</th><th class="thc">Animales</th>
+      <th class="thc">Precio/frasco</th><th class="thc">Subtotal</th>
+      <th>Observación</th><th>Acc.</th>
+    </tr></thead><tbody>`;
+
+    lista.forEach(v => {
+      const prod = PVETS.find(p=>p.key===v.producto)||{label:v.producto,icon:'💉'};
+      const sub  = Number(v.frascos)*Number(v.precio);
+      h += `<tr>
+        <td>${fd(v.fecha)}</td>
+        <td>${prod.icon} ${prod.label}</td>
+        <td class="tdc"><strong>${fn(v.frascos,2)}</strong> frascos</td>
+        <td class="tdc">${v.animales?fn(v.animales,0)+' cab.':'—'}</td>
+        <td class="tdc">${fmon(v.precio)}</td>
+        <td class="tdc"><strong>${fmon(sub)}</strong></td>
+        <td style="font-size:12px;color:var(--text2)">${v.obs||'—'}</td>
+        <td class="td-actions">
+          <button class="btn-edit" data-edit-vt="${v.id}">✏️</button>
+          <button class="btn-del" data-del-vt="${v.id}">🗑</button>
+        </td></tr>`;
+    });
+
+    // Fila totales con resumen de frascos por producto
+    const resumen = PVETS.map(p=>{
+      const f = totFrascos[p.key]||0;
+      return f>0 ? `${p.icon} ${p.label}: ${fn(f,2)} frascos` : '';
+    }).filter(Boolean).join(' &nbsp;|&nbsp; ');
+    h += `<tr class="total-row">
+      <td colspan="2">TOTAL ${cor.nombre}</td>
+      <td colspan="3" style="font-size:11px;color:var(--text3)">${resumen}</td>
+      <td class="tdc"><strong style="color:#9b59b6">${fmon(totCosto)}</strong></td>
+      <td colspan="2"></td>
+    </tr>`;
+    h += `</tbody></table></div>`;
+  });
+  return h;
+}
+
+function openEditConsumoVet(id) {
+  const item = (S.consumosVet||[]).find(v=>v.id===id);
+  if (!item) return;
+  const PVETS = getProductosVet();
+  const prod = PVETS.find(p=>p.key===item.producto)||{label:item.producto,icon:'💉'};
+  document.getElementById('modal-container').innerHTML = `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ Editar — ${prod.icon} ${prod.label}</div>
+        <button class="modal-close" id="mc">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="fgrid">
+          <div class="fg"><label>Fecha</label><input type="date" id="me-vt-fecha" value="${item.fecha}"></div>
+          <div class="fg"><label>Producto</label>
+            <select id="me-vt-prod">${PVETS.map(p=>`<option value="${p.key}"${p.key===item.producto?' selected':''}>${p.icon} ${p.label}</option>`).join('')}</select>
+          </div>
+          <div class="fg"><label>Frascos usados</label><input type="number" id="me-vt-frascos" value="${item.frascos}" min="0" step="0.01"></div>
+          <div class="fg"><label>Animales tratados</label><input type="number" id="me-vt-animales" value="${item.animales||''}" min="0" step="1"></div>
+          <div class="fg"><label>Precio / frasco</label><input type="number" id="me-vt-precio" value="${item.precio}" min="0" step="0.01"></div>
+          <div class="fg" style="min-width:260px"><label>Observación</label><input type="text" id="me-vt-obs" value="${item.obs||''}"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="mc2">Cancelar</button>
+        <button class="btn btn-save" id="me-vt-save">✓ Guardar</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mc').onclick = closeModal;
+  document.getElementById('mc2').onclick = closeModal;
+  document.getElementById('modal-overlay').onclick = e=>{if(e.target.id==='modal-overlay')closeModal();};
+  document.getElementById('me-vt-save').onclick = () => {
+    const f  = document.getElementById('me-vt-fecha').value;
+    const pr = document.getElementById('me-vt-prod').value;
+    const fr = Number(document.getElementById('me-vt-frascos').value);
+    const an = Number(document.getElementById('me-vt-animales').value)||0;
+    const p  = Number(document.getElementById('me-vt-precio').value);
+    const ob = (document.getElementById('me-vt-obs').value||'').trim();
+    if (!f||!fr||fr<=0||!p||p<=0){alert('Completá fecha, frascos y precio.');return;}
+    S.consumosVet=(S.consumosVet||[]).map(v=>v.id===id?{...v,fecha:f,producto:pr,frascos:fr,animales:an,precio:p,obs:ob}:v);
+    save();closeModal();setAlert('Registro actualizado.','g');render();
+  };
+}
+
+function openEditProductoVet(key) {
+  const PVETS = getProductosVet();
+  const p = PVETS.find(x=>x.key===key);
+  if (!p) return;
+  document.getElementById('modal-container').innerHTML = `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ Editar producto veterinario</div>
+        <button class="modal-close" id="mc">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="fgrid">
+          <div class="fg"><label>Nombre</label><input type="text" id="me-pvet-label" value="${p.label}"></div>
+          <div class="fg"><label>Ícono</label><input type="text" id="me-pvet-icon" value="${p.icon}" style="width:60px"></div>
+          <div class="fg"><label>ml por frasco</label><input type="number" id="me-pvet-frasco" value="${p.mlFrasco||''}" min="0" step="1" placeholder="Ej: 500"></div>
+          <div class="fg"><label>ml por dosis animal</label><input type="number" id="me-pvet-dosis" value="${p.mlDosis||''}" min="0" step="0.1" placeholder="Ej: 10"></div>
+          <div class="fg"><label>Precio por frasco (default)</label><input type="number" id="me-pvet-precio" value="${p.precioDefault||''}" min="0" step="0.01"></div>
+        </div>
+        ${p.mlFrasco&&p.mlDosis?`<div style="font-size:12px;color:var(--text2);margin-top:8px">ℹ️ Con estos datos, 1 frasco alcanza para ~${fn(p.mlFrasco/p.mlDosis,0)} animales.</div>`:''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="mc2">Cancelar</button>
+        <button class="btn btn-save" id="me-pvet-save">✓ Guardar</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mc').onclick = closeModal;
+  document.getElementById('mc2').onclick = closeModal;
+  document.getElementById('modal-overlay').onclick = e=>{if(e.target.id==='modal-overlay')closeModal();};
+  document.getElementById('me-pvet-save').onclick = () => {
+    const label  = (document.getElementById('me-pvet-label').value||'').trim();
+    const icon   = (document.getElementById('me-pvet-icon').value||'💉').trim();
+    const mlFrasco = Number(document.getElementById('me-pvet-frasco').value)||0;
+    const mlDosis  = Number(document.getElementById('me-pvet-dosis').value)||0;
+    const precioDefault = Number(document.getElementById('me-pvet-precio').value)||0;
+    if (!label) { alert('Ingresá el nombre.'); return; }
+    if (!S.productosVet||!S.productosVet.length) S.productosVet = JSON.parse(JSON.stringify(getProductosVet()));
+    S.productosVet = S.productosVet.map(x=>x.key===key?{...x,label,icon,mlFrasco,mlDosis,precioDefault}:x);
+    save();closeModal();setAlert('Producto actualizado.','g');render();
+  };
+}
+
+
+function getBolsonesOpts(tipo) {
+  const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+  const ins = getInsumos().find(a=>a.key===tipo);
+  if (!bols.length) return '<select id="cc-bolson"><option value="">Sin stock disponible</option></select>';
+  return '<select id="cc-bolson">' + bols.map(b=>{
+    const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+    return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${ins?.unidad||''})</option>`;
+  }).join('') + '</select>';
+}
+
+function buildStock() {
+  const PVETS = getProductosVet();
+  let h = `<div class="section-label">📦 Stock de insumos</div>`;
+
+  // ── ALIMENTOS por campo ───────────────────────────────────────────────────
+  h += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:18px">`;
+  CAMPOS_GANADEROS.forEach(campo => {
+    h += `<div class="panel" style="margin:0">
+      <div class="panel-title">🏡 ${campo.nombre}</div>`;
+    getInsumos().forEach(a => {
+      const bolsonesCampo = (S.bolsones||[]).filter(b=>b.campo===campo.id&&b.tipo===a.key&&b.activo!==false);
+      const stockTotal = bolsonesCampo.reduce((s,b)=>s+Math.max(0,stockBolson(b.id)),0);
+      const minimo = bolsonesCampo.length ? Math.min(...bolsonesCampo.map(b=>Number(b.minimo)||0)) : 0;
+      const alerta = minimo > 0 && stockTotal <= minimo;
+      h += `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span>${a.icon} ${a.label}</span>
+        <span style="font-weight:700;color:${alerta?'var(--red)':bolsonesCampo.length?'var(--green)':'var(--text3)'}">${bolsonesCampo.length?fn(stockTotal,0)+' '+a.unidad:'sin bolsones'} ${alerta?'⚠️':''}</span>
+      </div>`;
+      // Detalle bolsones
+      bolsonesCampo.forEach(b => {
+        const stk = stockBolson(b.id);
+        h += `<div style="font-size:11px;color:var(--text2);padding:2px 0 2px 12px;display:flex;justify-content:space-between">
+          <span>📦 ${b.nombre}</span>
+          <span style="color:${stk<=0?'var(--red)':'var(--text2)'}">${fn(stk,0)} ${a.unidad}
+            <button class="btn-del" data-del-bolson="${b.id}" style="font-size:10px;padding:1px 5px;margin-left:4px">🗑</button>
+          </span>
+        </div>`;
+      });
+    });
+    h += `</div>`;
+  });
+  h += `</div>`;
+
+  // ── VETERINARIA stock central ─────────────────────────────────────────────
+  h += `<div class="section-label">🩺 Stock veterinario (central)</div>`;
+  h += `<div class="tw"><table class="data-table" style="margin-bottom:14px"><thead><tr>
+    <th>Producto</th><th class="thc">Comprado</th><th class="thc">Consumido</th><th class="thc">Stock actual</th><th class="thc">Mínimo</th>
+  </tr></thead><tbody>`;
+  PVETS.forEach(p => {
+    const comprado = (S.comprasVet||[]).filter(c=>c.key===p.key).reduce((s,c)=>s+Number(c.frascos),0);
+    const consumido = (S.consumosVet||[]).filter(c=>c.producto===p.key).reduce((s,c)=>s+Number(c.frascos||0),0);
+    const stock = comprado - consumido;
+    const minimo = Number((S.minimoVet||{})[p.key]||0);
+    const alerta = minimo > 0 && stock <= minimo;
+    h += `<tr>
+      <td>${p.icon} <strong>${p.label}</strong></td>
+      <td class="tdc">${fn(comprado,2)} frascos</td>
+      <td class="tdc">${fn(consumido,2)} frascos</td>
+      <td class="tdc" style="font-weight:700;color:${alerta?'var(--red)':stock>0?'var(--green)':'var(--text3)'}">
+        ${fn(stock,2)} frascos ${alerta?'⚠️':stock<=0?'🔴':''}
+      </td>
+      <td class="tdc">${minimo>0?fn(minimo,0)+' frascos':'—'}</td>
+    </tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  // ── Cargar compra de veterinaria ──────────────────────────────────────────
+  h += `<div class="panel">
+    <div class="panel-title">➕ Registrar compra de veterinaria</div>
+    <div class="fgrid">
+      <div class="fg"><label>Producto</label>
+        <select id="cv-producto">${PVETS.map(p=>`<option value="${p.key}">${p.icon} ${p.label}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>Fecha</label><input type="date" id="cv-fecha" value="${today()}"></div>
+      <div class="fg"><label>Frascos comprados</label><input type="number" id="cv-frascos" placeholder="Ej: 10" min="0" step="0.01"></div>
+      <div class="fg"><label>Precio / frasco</label><input type="number" id="cv-precio" placeholder="Ej: 750000" min="0" step="0.01"></div>
+      <div class="fg"><label>Proveedor (opcional)</label><input type="text" id="cv-proveedor" placeholder="Nombre del proveedor"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-cv-add">✓ Registrar compra</button>
+  </div>`;
+
+  // Historial compras vet
+  const comprasVet = (S.comprasVet||[]).slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  if (comprasVet.length) {
+    h += `<div class="tw"><table class="data-table" style="margin-bottom:18px"><thead><tr>
+      <th>Fecha</th><th>Producto</th><th class="thc">Frascos</th><th class="thc">Precio/frasco</th><th class="thc">Total</th><th>Proveedor</th><th>Acc.</th>
+    </tr></thead><tbody>`;
+    comprasVet.forEach(c => {
+      const prod = PVETS.find(p=>p.key===c.key)||{label:c.key,icon:'💉'};
+      h += `<tr>
+        <td>${fd(c.fecha)}</td>
+        <td>${prod.icon} ${prod.label}</td>
+        <td class="tdc">${fn(c.frascos,2)}</td>
+        <td class="tdc">${fmon(c.precio)}</td>
+        <td class="tdc"><strong>${fmon(c.frascos*c.precio)}</strong></td>
+        <td style="font-size:12px;color:var(--text2)">${c.proveedor||'—'}</td>
+        <td class="td-actions"><button class="btn-del" data-del-cv="${c.id}">🗑</button></td>
+      </tr>`;
+    });
+    h += `</tbody></table></div>`;
+  }
+
+  // ── Consumo de campo (no corral) ────────────────────────────────────────
+  h += `<div class="section-label" style="margin-top:18px">🐄 Consumo de campo (rodeos fuera del corral)</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
+    Registrá los consumos en rodeos de campo. <strong>Descuenta del stock pero NO afecta costos de corrales.</strong>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Registrar consumo de campo</div>
+    <div class="fgrid">
+      <div class="fg"><label>Fecha</label><input type="date" id="cc-fecha" value="${today()}"></div>
+      <div class="fg"><label>Insumo</label>
+        <select id="cc-tipo" onchange="document.getElementById('cc-bolson-wrap').innerHTML=getBolsonesOpts(this.value)">
+          ${getInsumos().map(a=>`<option value="${a.key}">${a.icon} ${a.label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg" style="min-width:240px"><label>Stock origen</label>
+        <div id="cc-bolson-wrap">
+          ${(()=>{
+            const tipo = getInsumos()[0]?.key||'maiz';
+            const bols = (S.bolsones||[]).filter(b=>b.tipo===tipo&&b.activo!==false&&stockBolson(b.id)>0);
+            if (!bols.length) return '<select id="cc-bolson"><option value="">Sin stock disponible</option></select>';
+            return '<select id="cc-bolson">' + bols.map(b=>{
+              const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+              return `<option value="${b.id}">${campo?.nombre||b.campo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${getInsumos().find(a=>a.key===b.tipo)?.unidad||''})</option>`;
+            }).join('') + '</select>';
+          })()}
+        </div>
+      </div>
+      <div class="fg"><label>Cantidad</label><input type="number" id="cc-cant" placeholder="Ej: 500" min="0" step="0.01"></div>
+      <div class="fg" style="min-width:200px"><label>Rodeo / destino</label><input type="text" id="cc-rodeo" placeholder="Ej: Vacas Rodeo 3..."></div>
+      <div class="fg" style="min-width:200px"><label>Observación</label><input type="text" id="cc-obs" placeholder="Opcional"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-cc-add">✓ Registrar consumo</button>
+  </div>`;
+
+  const ccLista = (S.consumosCampo||[]).slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,20);
+  if (ccLista.length) {
+    h += `<div class="tw"><table class="data-table" style="margin-bottom:14px"><thead><tr>
+      <th>Fecha</th><th>Insumo</th><th>Stock origen</th><th class="thc">Cantidad</th><th>Rodeo</th><th>Obs.</th><th>Acc.</th>
+    </tr></thead><tbody>`;
+    ccLista.forEach(c => {
+      const ins = getInsumos().find(a=>a.key===c.tipo)||{label:c.tipo,unidad:'',icon:'🌿'};
+      const bol = (S.bolsones||[]).find(b=>b.id===c.bolsonId);
+      const campoNom = bol ? (CAMPOS_GANADEROS.find(x=>x.id===bol.campo)?.nombre||bol.campo) : '—';
+      h += `<tr>
+        <td>${fd(c.fecha)}</td><td>${ins.icon} ${ins.label}</td>
+        <td style="font-size:12px;color:var(--text2)">${bol?campoNom+' — '+bol.nombre:'—'}</td>
+        <td class="tdc">${fn(c.cant,1)} ${ins.unidad}</td>
+        <td style="font-size:12px">${c.rodeo||'—'}</td>
+        <td style="font-size:12px;color:var(--text2)">${c.obs||'—'}</td>
+        <td class="td-actions"><button class="btn-del" data-del-cc="${c.id}">🗑</button></td>
+      </tr>`;
+    });
+    h += `</tbody></table></div>`;
+  }
+
+  // ── Cargar bolsón de alimento ─────────────────────────────────────────────
+  const campoOpts = CAMPOS_GANADEROS.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  const alimentoOpts = getInsumos().map(a=>`<option value="${a.key}">${a.icon} ${a.label}</option>`).join('');
+  h += `<div class="section-label">📦 Gestión de stock de insumos</div>
+  <div class="panel">
+    <div class="panel-title">➕ Agregar al stock</div>
+    <div class="fgrid">
+      <div class="fg"><label>Campo</label><select id="nb-campo">${campoOpts}</select></div>
+      <div class="fg"><label>Insumo</label><select id="nb-tipo">${alimentoOpts}</select></div>
+      <div class="fg"><label>Identificación <span style="font-size:11px;color:var(--text3)">(opcional)</span></label><input type="text" id="nb-nombre" placeholder="Ej: Stock 1, Silo Norte, Lote Rollos..."></div>
+      <div class="fg"><label>Cantidad inicial</label><input type="number" id="nb-cant" placeholder="Ej: 50000 kg · 150 rollos" min="0" step="0.01"></div>
+      <div class="fg"><label>Fecha ingreso</label><input type="date" id="nb-fecha" value="${today()}"></div>
+      <div class="fg"><label>Mínimo de alerta</label><input type="number" id="nb-minimo" placeholder="Ej: 5000" min="0" step="0.01"></div>
+      <div class="fg"><label>Proveedor (opcional)</label><input type="text" id="nb-proveedor" placeholder="Nombre del proveedor"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-nb-add">✓ Agregar al stock</button>
+  </div>`;
+
+  // Transferencia entre campos
+  const bolsonesActivos = (S.bolsones||[]).filter(b=>b.activo!==false&&stockBolson(b.id)>0);
+  if (bolsonesActivos.length > 0) {
+    const bolsonOpts = bolsonesActivos.map(b=>{
+      const campo = CAMPOS_GANADEROS.find(c=>c.id===b.campo);
+      const alim  = ALIMENTOS.find(a=>a.key===b.tipo);
+      return `<option value="${b.id}">${campo?.nombre||b.campo} — ${alim?.label||b.tipo} — ${b.nombre} (${fn(stockBolson(b.id),0)} ${alim?.unidad||''})</option>`;
+    }).join('');
+    h += `<div class="panel">
+      <div class="panel-title">🔄 Transferir entre campos</div>
+      <div class="fgrid">
+        <div class="fg" style="min-width:280px"><label>Stock origen</label><select id="tr-origen">${bolsonOpts}</select></div>
+        <div class="fg"><label>Campo destino</label><select id="tr-campo-dest">${campoOpts}</select></div>
+        <div class="fg"><label>Cantidad a transferir</label><input type="number" id="tr-cant" placeholder="Ej: 10000" min="0" step="0.01"></div>
+        <div class="fg"><label>Nombre stock destino</label><input type="text" id="tr-nombre-dest" placeholder="Ej: Stock transferido"></div>
+        <div class="fg"><label>Fecha</label><input type="date" id="tr-fecha" value="${today()}"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-tr-add">✓ Registrar transferencia</button>
+    </div>`;
+  }
+
+  return h;
+}
+
 
 function buildConfig() {
   const todos = getCorrales(false); // todos incluyendo inactivos
@@ -2800,17 +3483,21 @@ function buildConfig() {
   <div class="panel">
     <div class="panel-title">Registrar precio</div>
     <div class="fgrid">
-      <div class="fg"><label>Alimento</label>
-        <select id="pa-tipo">${ALIMENTOS.map(a=>`<option value="${a.key}">${a.icon} ${a.label}</option>`).join('')}</select>
+      <div class="fg"><label>Insumo</label>
+        <select id="pa-tipo" onchange="document.getElementById('pa-unidad-ref').textContent=getInsumos().find(x=>x.key===this.value)?.unidad||'unidad'">
+          ${getInsumos().map(a=>`<option value="${a.key}">${a.icon} ${a.label}</option>`).join('')}
+        </select>
       </div>
       <div class="fg"><label>Válido desde</label><input type="date" id="pa-fecha" value="${today()}"></div>
-      <div class="fg"><label>Precio ($ por ${ALIMENTOS[0].unidad})</label><input type="number" id="pa-valor" placeholder="Ej: 168" min="0" step="0.01"></div>
+      <div class="fg"><label>Precio ($ por <span id="pa-unidad-ref">${getInsumos()[0]?.unidad||'unidad'}</span>)</label>
+        <input type="number" id="pa-valor" placeholder="Ej: 168" min="0" step="0.01">
+      </div>
     </div>
     <button class="btn btn-primary" id="btn-pa-add">✓ Registrar precio</button>
   </div>`;
 
-  // Tabla por alimento
-  ALIMENTOS.forEach(a => {
+  // Tabla por insumo
+  getInsumos().forEach(a => {
     const precios = (S.preciosAlim||[]).filter(p=>p.tipo===a.key).sort((x,y)=>y.fecha.localeCompare(x.fecha));
     const vigente = precioAlimHoy(a.key);
     h += `<div class="section-label" style="margin-top:8px">${a.icon} ${a.label} ${vigente?`<span style="color:var(--green);font-size:11px">· vigente hoy: ${fmon(vigente)}/${a.unidad}</span>`:'<span style="color:var(--red);font-size:11px">· sin precio cargado</span>'}</div>`;
@@ -2830,6 +3517,108 @@ function buildConfig() {
       });
       h += `</tbody></table></div>`;
     }
+  });
+
+  // ── INSUMOS PERSONALIZADOS (ABM) ─────────────────────────────────────────
+  const todosInsumos = getInsumos();
+  h += `<div style="border-top:2px solid var(--border);margin:18px 0 14px"></div>
+  <div class="section-label">🌿 Insumos de alimentación</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Los 4 insumos base no se pueden eliminar. Podés agregar insumos adicionales como sales, vitaminas, etc.</div>`;
+
+  h += `<div class="tw"><table class="data-table" style="margin-bottom:10px"><thead><tr>
+    <th>Insumo</th><th class="thc">Unidad</th><th class="thc">Tipo</th><th class="thc">Acciones</th>
+  </tr></thead><tbody>`;
+  todosInsumos.forEach(a => {
+    const esBase = ALIMENTOS_DEFAULT.some(x=>x.key===a.key);
+    h += `<tr>
+      <td>${a.icon} <strong>${a.label}</strong></td>
+      <td class="tdc">${a.unidad}</td>
+      <td class="tdc"><span style="font-size:11px;color:var(--text2)">${esBase?'Base':'Personalizado'}</span></td>
+      <td class="td-actions">${esBase?'—':`<button class="btn-edit" data-edit-insumo="${a.key}">✏️</button> <button class="btn-del" data-del-insumo="${a.key}">🗑</button>`}</td>
+    </tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  h += `<div class="panel">
+    <div class="panel-title">➕ Agregar insumo personalizado</div>
+    <div class="fgrid">
+      <div class="fg"><label>Nombre</label><input type="text" id="ni-label" placeholder="Ej: Sales, Vitaminas, Heno..."></div>
+      <div class="fg"><label>Ícono</label><input type="text" id="ni-icon" value="🧂" style="width:60px"></div>
+      <div class="fg"><label>Unidad</label><input type="text" id="ni-unidad" placeholder="Ej: kg, bolsas, unidades..." value="kg"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-ni-add">✓ Agregar al stock</button>
+  </div>`;
+
+  // ── PRODUCTOS VETERINARIOS (ABM) ─────────────────────────────────────────
+  const PVETS = getProductosVet();
+  h += `<div style="border-top:2px solid var(--border);margin:18px 0 14px"></div>
+  <div class="section-label">🩺 Productos veterinarios</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
+    El precio es <strong>por frasco completo</strong>. Al registrar una aplicación ingresás cuántos frascos usaste (puede ser fracción). Podés editar, agregar o eliminar productos.</div>`;
+
+  h += `<div class="tw"><table class="data-table" style="margin-bottom:10px"><thead><tr>
+    <th>Producto</th><th class="thc">ml/frasco</th><th class="thc">ml/dosis</th><th class="thc">Animales/frasco</th><th class="thc">Precio default</th><th class="thc">Vigente hoy</th><th class="thc">Usos</th><th class="thc">Acciones</th>
+  </tr></thead><tbody>`;
+  PVETS.forEach(p => {
+    const prHoy = precioVetHoy(p.key);
+    const usos  = (S.consumosVet||[]).filter(v=>v.producto===p.key).length;
+    const canDel = usos === 0;
+    const animPorFrasco = p.mlFrasco && p.mlDosis ? fn(p.mlFrasco/p.mlDosis,0)+' cab.' : '—';
+    h += `<tr>
+      <td>${p.icon} <strong>${p.label}</strong></td>
+      <td class="tdc">${p.mlFrasco?fn(p.mlFrasco,0)+' ml':'—'}</td>
+      <td class="tdc">${p.mlDosis?fn(p.mlDosis,1)+' ml':'—'}</td>
+      <td class="tdc">${animPorFrasco}</td>
+      <td class="tdc">${fmon(p.precioDefault)}/frasco</td>
+      <td class="tdc" style="color:var(--green);font-weight:600">${prHoy?fmon(prHoy)+'/frasco':'<span style="color:var(--text3)">usa default</span>'}</td>
+      <td class="tdc">${usos}</td>
+      <td class="td-actions" style="white-space:nowrap">
+        <button class="btn-edit" data-edit-pvet="${p.key}">✏️</button>
+        ${canDel?`<button class="btn-del" data-del-pvet="${p.key}">🗑</button>`:'<span style="font-size:11px;color:var(--text3)">en uso</span>'}
+      </td>
+    </tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  h += `<div class="panel">
+    <div class="panel-title">➕ Agregar producto</div>
+    <div class="fgrid">
+      <div class="fg"><label>Nombre</label><input type="text" id="npv-label" placeholder="Ej: Ivermectina"></div>
+      <div class="fg"><label>Ícono</label><input type="text" id="npv-icon" placeholder="💉" style="width:60px" value="💉"></div>
+      <div class="fg"><label>ml por frasco</label><input type="number" id="npv-frasco" placeholder="Ej: 500" min="0" step="1"></div>
+      <div class="fg"><label>ml por dosis / animal</label><input type="number" id="npv-dosis" placeholder="Ej: 5" min="0" step="0.1"></div>
+      <div class="fg"><label>Precio por frasco (default)</label><input type="number" id="npv-precio" placeholder="Ej: 750000" min="0" step="0.01"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-npv-add">✓ Agregar</button>
+  </div>`;
+
+  // Precios con vigencia
+  h += `<div class="section-label" style="margin-top:14px">📅 Precios con vigencia por fecha</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:10px">El precio vigente se aplica automáticamente al registrar aplicaciones. Si no hay precio cargado usa el default del producto.</div>
+  <div class="panel">
+    <div class="panel-title">Registrar precio</div>
+    <div class="fgrid">
+      <div class="fg"><label>Producto</label>
+        <select id="pv-tipo">${PVETS.map(p=>`<option value="${p.key}">${p.icon} ${p.label}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>Válido desde</label><input type="date" id="pv-fecha" value="${today()}"></div>
+      <div class="fg"><label>Precio ($ / frasco)</label><input type="number" id="pv-valor" placeholder="Ej: 800000" min="0" step="0.01"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-pv-add">✓ Registrar precio</button>
+  </div>`;
+
+  PVETS.forEach(p => {
+    const precios = (S.preciosVet||[]).filter(x=>x.key===p.key).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    if (!precios.length) return;
+    h += `<div class="section-label" style="margin-top:8px">${p.icon} ${p.label}</div>
+    <div class="tw"><table class="data-table" style="margin-bottom:8px"><thead><tr>
+      <th>Válido desde</th><th class="thc">Precio / frasco</th><th>Acc.</th>
+    </tr></thead><tbody>`;
+    precios.forEach(x => {
+      h += `<tr><td>${fd(x.fecha)}</td><td class="tdc"><strong>${fmon(Number(x.valor))}</strong></td>
+        <td class="td-actions"><button class="btn-del" data-del-pv="${x.id}">🗑</button></td></tr>`;
+    });
+    h += `</tbody></table></div>`;
   });
 
   // ── TIPO DE CAMBIO ────────────────────────────────────────────────────────
@@ -2865,6 +3654,37 @@ function buildConfig() {
     });
     h += `</tbody></table></div>`;
   }
+
+  // ── GITHUB SYNC ──────────────────────────────────────────────────────────
+  const ghToken = getGithubToken();
+  const ghStatus = ghToken ? '✅ Token configurado — los datos se sincronizan con GitHub' : '⚠️ Sin token — los datos se guardan solo en este navegador';
+  h += `<div style="border-top:2px solid var(--border);margin:18px 0 14px"></div>
+  <div class="section-label">☁️ Sincronización con GitHub</div>
+  <div style="font-size:12px;margin-bottom:10px;padding:10px 14px;border-radius:8px;background:${ghToken?'var(--green-bg)':'var(--bg2)'};border:1px solid ${ghToken?'#5DCAA5':'var(--border)'}">
+    <span style="font-weight:600">${ghStatus}</span><br>
+    <span style="color:var(--text2);font-size:11px">Con el token configurado, cada vez que guardás los datos se suben automáticamente a GitHub y están disponibles desde cualquier PC.</span>
+  </div>
+  <div class="panel">
+    <div class="panel-title">${ghToken?'🔄 Actualizar token':'🔑 Configurar token de GitHub'}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">
+      Pegá el token de acceso personal (empieza con <code>ghp_</code>). Se guarda solo en este navegador, nunca se sube a ningún servidor.
+    </div>
+    <div class="fgrid">
+      <div class="fg" style="min-width:340px">
+        <label>Token de acceso personal</label>
+        <input type="password" id="gh-token-input" placeholder="ghp_..." value="${ghToken}" style="font-family:monospace;font-size:12px">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button class="btn btn-primary" id="btn-gh-token-save">✓ Guardar token</button>
+      ${ghToken?`<button class="btn" id="btn-gh-token-test" style="background:var(--bg2)">🔍 Probar conexión</button>`:''}
+      ${ghToken?`<button class="btn btn-del" id="btn-gh-token-clear">🗑 Eliminar token</button>`:''}
+    </div>
+    <div id="gh-token-status" style="font-size:12px;margin-top:8px"></div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.6">
+    💡 Para crear el token: github.com → Foto de perfil → Configuración → Configuración de desarrollador → Tokens de acceso personal → Tokens (clásico) → Generar nuevo token → marcá solo <strong>repo</strong> → Sin caducidad.
+  </div>`;
 
   return h;
 }
@@ -3088,6 +3908,8 @@ function attachEvents() {
         if (!d.ingresos || !d.ventas || !d.consumos) { alert('El archivo no es un respaldo válido de esta aplicación.'); return; }
         if (!confirm(`¿Importar datos del archivo "${file.name}"?\nEsto reemplazará los datos actuales.`)) return;
         S.ingresos = d.ingresos; S.ventas = d.ventas; S.consumos = d.consumos;
+        S.pesadas = d.pesadas||[]; S.preciosStock = d.preciosStock||{}; S.pesoObjetivo = d.pesoObjetivo||{}; S.precioProyectado = d.precioProyectado||{}; S.lotesCerrados = d.lotesCerrados||[]; S.corrales = d.corrales||null;
+        S.tipoCambio = d.tipoCambio||[]; S.preciosAlim = d.preciosAlim||[]; S.notas = d.notas||[]; S.productosVet = d.productosVet||null; S.preciosVet = d.preciosVet||[]; S.consumosVet = d.consumosVet||[]; S.bolsones = d.bolsones||[]; S.transferenciasBolson = d.transferenciasBolson||[]; S.comprasVet = d.comprasVet||[]; S.insumosExtra = d.insumosExtra||[]; S.consumosCampo = d.consumosCampo||[]; if(d.moneda) S.moneda = d.moneda;
         save(); setAlert('Datos importados correctamente.', 'g'); render();
       } catch(err) { alert('No se pudo leer el archivo. Asegurate de que sea un backup válido (.json).'); }
     };
@@ -3126,24 +3948,119 @@ function attachEvents() {
     }
     const stk=stockAt(S.corral,f);
     if (stk<=0) { setAlert('No hay animales en el corral en esa fecha.'); render(); return; }
-    S.consumos.push({ id:gid(), cid:S.corral, fecha:f, tipo:t, cant:c, precio:p });
+    const bolsonId = document.getElementById('con-bolson')?.value || null;
+    if (bolsonId) {
+      const stkBol = stockBolson(bolsonId);
+      if (c > stkBol) { setAlert('La cantidad supera el stock del origen ('+fn(stkBol,0)+' disponibles). Verificá o dejá "Sin asignar".'); render(); return; }
+    }
+    S.consumos.push({ id:gid(), cid:S.corral, fecha:f, tipo:t, cant:c, precio:p, bolsonId: bolsonId||null });
     save(); setAlert('Consumo registrado correctamente.','g'); render();
   });
 
   // NEW VENTA / BAJA
   const bv = document.getElementById('btn-ven');
   if (bv) bv.addEventListener('click', () => {
-    const f=document.getElementById('vf').value, c=Number(document.getElementById('vc').value),
-          k=Number(document.getElementById('vk').value),
-          pRaw=document.getElementById('vp').value.trim();
-    const esBaja = pRaw === '';
-    const p = esBaja ? 0 : Number(pRaw);
+    const f       = document.getElementById('vf').value;
+    const tipo    = document.getElementById('vtipo').value;
+    const c       = Number(document.getElementById('vc').value);
+    const k       = Number(document.getElementById('vk').value);
+    const comprador = (document.getElementById('vcomprador').value||'').trim();
+    const pPactado  = Number(document.getElementById('vp').value)||0;
+    const obs       = (document.getElementById('vobs').value||'').trim();
+    const esBaja    = tipo === 'baja';
     if (!f||c<1||k<1) { setAlert('Completá fecha, cantidad y kilos.'); render(); return; }
     const stk=stockAt(S.corral,f);
-    if (c>stk) { setAlert(`No hay ${c} animales disponibles el ${fd(f)}. Hay ${stk}.`); render(); return; }
-    S.ventas.push({ id:gid(), cid:S.corral, fecha:f, cant:c, kg:k, precio:p, baja:esBaja });
-    save(); setAlert(esBaja?'Baja registrada correctamente.':'Venta registrada correctamente.','g'); render();
+    if (c>stk) { setAlert('No hay '+c+' animales disponibles el '+fd(f)+'. Hay '+stk+'.'); render(); return; }
+    S.ventas.push({ id:gid(), cid:S.corral, fecha:f, tipo, cant:c, kg:k,
+      comprador, precioPactado:pPactado, obs, baja:esBaja, liquidado:false,
+      // legacy compat
+      precio: pPactado
+    });
+    save(); setAlert(esBaja?'Baja registrada.':'Salida registrada — pendiente de liquidación.','g'); render();
   });
+
+  // Liquidar venta
+  document.querySelectorAll('[data-liq-ven]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.liqVen;
+    const v  = S.ventas.find(x=>x.id===id);
+    if (!v) return;
+    const esFrigo = v.tipo === 'frigorifico';
+    document.getElementById('modal-container').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">💰 Liquidar — ${esFrigo?'🏭 Frigorífico':'🤝 Venta en pie'} · ${fd(v.fecha)} · ${fn(v.cant,0)} cab.</div>
+          <button class="modal-close" id="mc">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px">
+            Kg en campo: ${fn(Number(v.cant)*Number(v.kg),0)} kg · Precio pactado: ${v.precioPactado?fmon(v.precioPactado)+'/kg':'no cargado'}
+          </div>
+          <div class="fgrid">
+            ${esFrigo?`
+            <div class="fg"><label>Kg vivos en frigorífico</label><input type="number" id="liq-kg" placeholder="Ej: 16900" min="0" step="1" oninput="calcLiq()"></div>
+            <div class="fg"><label>Rinde % (kg gancho / kg vivo)</label><input type="number" id="liq-rinde" placeholder="Ej: 58" min="0" step="0.1" oninput="calcLiq()"></div>
+            <div class="fg"><label>Precio proporcional ($/kg vivo)</label><input type="number" id="liq-precio" placeholder="Ej: 2610" min="0" step="0.01" oninput="calcLiq()"></div>
+            `:`
+            <div class="fg"><label>Kg brutos pesados</label><input type="number" id="liq-kg" placeholder="Ej: 17000" min="0" step="1" oninput="calcLiq()"></div>
+            <div class="fg"><label>Desbaste %</label><input type="number" id="liq-desbaste" placeholder="Ej: 3" min="0" step="0.1" oninput="calcLiq()"></div>
+            <div class="fg"><label>Precio ($/kg neto)</label><input type="number" id="liq-precio" placeholder="Ej: 4500" min="0" step="0.01" oninput="calcLiq()"></div>
+            `}
+            <div class="fg"><label>Importe total $</label><input type="number" id="liq-importe" placeholder="Calculado automático o ingresá manual" min="0" step="0.01"></div>
+          </div>
+          <div id="liq-preview" style="font-size:13px;font-weight:600;color:var(--green);margin-top:8px"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-cancel" id="mc2">Cancelar</button>
+          <button class="btn btn-save" id="liq-save">✓ Guardar liquidación</button>
+        </div>
+      </div>
+    </div>`;
+    const calcLiq = () => {
+      const kgEl  = document.getElementById('liq-kg');
+      const prEl  = document.getElementById('liq-precio');
+      const impEl = document.getElementById('liq-importe');
+      const prevEl = document.getElementById('liq-preview');
+      const kg = Number(kgEl?.value)||0;
+      const pr = Number(prEl?.value)||0;
+      let kgNetos = kg;
+      if (!esFrigo) {
+        const desb = Number(document.getElementById('liq-desbaste')?.value)||0;
+        kgNetos = kg * (1 - desb/100);
+      }
+      if (kg > 0 && pr > 0) {
+        const imp = Math.round(kgNetos * pr);
+        impEl.value = imp;  // always update
+        if (prevEl) prevEl.textContent = '→ ' + fn(kgNetos,0) + ' kg × ' + fmon(pr) + '/kg = ' + fmon(imp);
+      } else {
+        if (prevEl) prevEl.textContent = '';
+      }
+    };
+    window.calcLiq = calcLiq;
+    document.getElementById('mc').onclick = closeModal;
+    document.getElementById('mc2').onclick = closeModal;
+    document.getElementById('modal-overlay').onclick = e=>{if(e.target.id==='modal-overlay')closeModal();};
+    document.getElementById('liq-save').onclick = () => {
+      const kg     = Number(document.getElementById('liq-kg')?.value)||0;
+      const precio = Number(document.getElementById('liq-precio')?.value)||0;
+      const importe = Number(document.getElementById('liq-importe')?.value)||0;
+      const rinde  = esFrigo ? Number(document.getElementById('liq-rinde')?.value)||0 : 0;
+      const desb   = !esFrigo ? Number(document.getElementById('liq-desbaste')?.value)||0 : 0;
+      if (!kg||!importe) { alert('Completá los kg y el importe.'); return; }
+      const kgNetos = esFrigo ? kg : kg*(1-desb/100);
+      S.ventas = S.ventas.map(x => x.id===id ? {
+        ...x,
+        liquidado: true,
+        kgLiquidados: kgNetos,
+        rinde: esFrigo ? rinde : null,
+        desbaste: esFrigo ? null : desb,
+        precioLiq: precio,
+        importeTotal: importe,
+        precio: kgNetos > 0 ? importe/kgNetos : x.precio  // update legacy precio
+      } : x);
+      save(); closeModal(); setAlert('Liquidación guardada correctamente.','g'); render();
+    };
+  }));
 
   // PESO OBJETIVO (pesadas)
   document.querySelectorAll('[id^="btn-peso-obj-"]').forEach(b => {
@@ -3346,10 +4263,391 @@ function attachEvents() {
     S.corrales.push({ id: maxId+1, nombre, activo: true });
     save(); setAlert('Corral "'+nombre+'" agregado correctamente.','g'); render();
   });
+
+  // ── INSUMOS — agregar personalizado ─────────────────────────────────────
+  const btnNiAdd = document.getElementById('btn-ni-add');
+  if (btnNiAdd) btnNiAdd.addEventListener('click', () => {
+    const label  = (document.getElementById('ni-label').value||'').trim();
+    const icon   = (document.getElementById('ni-icon').value||'🧂').trim();
+    const unidad = (document.getElementById('ni-unidad').value||'kg').trim();
+    if (!label) { setAlert('Ingresá el nombre del insumo.'); render(); return; }
+    const key = label.toLowerCase().replace(/[^a-z0-9]/g,'_') + '_' + Date.now().toString(36);
+    if (getInsumos().some(a=>a.label.toLowerCase()===label.toLowerCase())) { setAlert('Ya existe un insumo con ese nombre.'); render(); return; }
+    if (!S.insumosExtra) S.insumosExtra = [];
+    S.insumosExtra.push({ key, label, icon, unidad });
+    save(); setAlert('"'+label+'" agregado.','g'); render();
+  });
+  // editar insumo personalizado
+  document.querySelectorAll('[data-edit-insumo]').forEach(b => b.addEventListener('click', () => {
+    const key = b.dataset.editInsumo;
+    const ins = (S.insumosExtra||[]).find(x=>x.key===key);
+    if (!ins) return;
+    document.getElementById('modal-container').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-header"><div class="modal-title">✏️ Editar insumo</div><button class="modal-close" id="mc">✕</button></div>
+        <div class="modal-body">
+          <div class="fgrid">
+            <div class="fg"><label>Nombre</label><input type="text" id="me-ni-label" value="${ins.label}"></div>
+            <div class="fg"><label>Ícono</label><input type="text" id="me-ni-icon" value="${ins.icon}" style="width:60px"></div>
+            <div class="fg"><label>Unidad</label><input type="text" id="me-ni-unidad" value="${ins.unidad}"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-cancel" id="mc2">Cancelar</button>
+          <button class="btn btn-save" id="me-ni-save">✓ Guardar</button>
+        </div>
+      </div>
+    </div>`;
+    document.getElementById('mc').onclick = closeModal;
+    document.getElementById('mc2').onclick = closeModal;
+    document.getElementById('modal-overlay').onclick = e=>{if(e.target.id==='modal-overlay')closeModal();};
+    document.getElementById('me-ni-save').onclick = () => {
+      const label  = (document.getElementById('me-ni-label').value||'').trim();
+      const icon   = (document.getElementById('me-ni-icon').value||'🧂').trim();
+      const unidad = (document.getElementById('me-ni-unidad').value||'kg').trim();
+      if (!label) { alert('Ingresá el nombre.'); return; }
+      S.insumosExtra = (S.insumosExtra||[]).map(x=>x.key===key?{...x,label,icon,unidad}:x);
+      save(); closeModal(); setAlert('Insumo actualizado.','g'); render();
+    };
+  }));
+  // eliminar insumo personalizado
+  document.querySelectorAll('[data-del-insumo]').forEach(b => b.addEventListener('click', () => {
+    const key = b.dataset.delInsumo;
+    const enUso = (S.bolsones||[]).some(x=>x.tipo===key);
+    if (enUso) { setAlert('No podés eliminar este insumo porque tiene stock cargado.'); render(); return; }
+    if (confirm('¿Eliminás este insumo?')) {
+      S.insumosExtra = (S.insumosExtra||[]).filter(x=>x.key!==key);
+      save(); render();
+    }
+  }));
+
+  // ── STOCK — consumo de campo ─────────────────────────────────────────────
+  const btnCcAdd = document.getElementById('btn-cc-add');
+  if (btnCcAdd) btnCcAdd.addEventListener('click', () => {
+    const fecha    = document.getElementById('cc-fecha').value;
+    const tipo     = document.getElementById('cc-tipo').value;
+    const bolsonId = document.getElementById('cc-bolson')?.value || null;
+    const cant     = Number(document.getElementById('cc-cant').value);
+    const rodeo    = (document.getElementById('cc-rodeo').value||'').trim();
+    const obs      = (document.getElementById('cc-obs').value||'').trim();
+    if (!fecha||!tipo||!cant||cant<=0) { setAlert('Completá fecha, insumo y cantidad.'); render(); return; }
+    if (bolsonId) {
+      const stk = stockBolson(bolsonId);
+      if (cant > stk) { setAlert('La cantidad supera el stock disponible ('+fn(stk,1)+' disponibles).'); render(); return; }
+    }
+    if (!S.consumosCampo) S.consumosCampo = [];
+    S.consumosCampo.push({ id: gid(), fecha, tipo, bolsonId, cant, rodeo, obs });
+    save(); setAlert('Consumo de campo registrado.','g'); render();
+  });
+  const ccTipoEl = document.getElementById('cc-tipo');
+  if (ccTipoEl) ccTipoEl.addEventListener('change', function() {
+    const wrap = document.getElementById('cc-bolson-wrap');
+    if (wrap) wrap.innerHTML = getBolsonesOpts(this.value);
+  });
+  document.querySelectorAll('[data-del-cc]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este consumo?')) {
+      S.consumosCampo = (S.consumosCampo||[]).filter(c=>c.id!==b.dataset.delCc);
+      save(); render();
+    }
+  }));
+
+  // Actualizar stock origen al cambiar alimento en alimentación corral
+  const ctEl = document.getElementById('ct');
+  if (ctEl) ctEl.addEventListener('change', actualizarStockOpts);
+  const cfEl = document.getElementById('cf');
+  if (cfEl) cfEl.addEventListener('change', actualizarStockOpts);
+
+  // ── STOCK — compra de veterinaria ────────────────────────────────────────
+  const btnCvAdd = document.getElementById('btn-cv-add');
+  if (btnCvAdd) btnCvAdd.addEventListener('click', () => {
+    const key      = document.getElementById('cv-producto').value;
+    const fecha    = document.getElementById('cv-fecha').value;
+    const frascos  = Number(document.getElementById('cv-frascos').value);
+    const precio   = Number(document.getElementById('cv-precio').value);
+    const proveedor = (document.getElementById('cv-proveedor').value||'').trim();
+    if (!fecha||!frascos||frascos<=0||!precio||precio<=0) { setAlert('Completá fecha, frascos y precio.'); render(); return; }
+    if (!S.comprasVet) S.comprasVet = [];
+    S.comprasVet.push({ id: gid(), key, fecha, frascos, precio, proveedor });
+    save(); setAlert('Compra registrada.','g'); render();
+  });
+  document.querySelectorAll('[data-del-cv]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás esta compra?')) {
+      S.comprasVet = (S.comprasVet||[]).filter(c=>c.id!==b.dataset.delCv);
+      save(); render();
+    }
+  }));
+
+  // ── STOCK — agregar stock ───────────────────────────────────────────────────
+  const btnNbAdd = document.getElementById('btn-nb-add');
+  if (btnNbAdd) btnNbAdd.addEventListener('click', () => {
+    const campo    = document.getElementById('nb-campo').value;
+    const tipo     = document.getElementById('nb-tipo').value;
+    let nombre     = (document.getElementById('nb-nombre').value||'').trim();
+    const cant     = Number(document.getElementById('nb-cant').value);
+    const fecha    = document.getElementById('nb-fecha').value;
+    const minimo   = Number(document.getElementById('nb-minimo').value)||0;
+    const proveedor = (document.getElementById('nb-proveedor').value||'').trim();
+    if (!campo||!tipo||!cant||cant<=0||!fecha) { setAlert('Completá campo, insumo, cantidad y fecha.'); render(); return; }
+    // Auto-nombre si está vacío
+    if (!nombre) {
+      const alim = getInsumos().find(a=>a.key===tipo);
+      const c = CAMPOS_GANADEROS.find(x=>x.id===campo);
+      const existing = (S.bolsones||[]).filter(b=>b.campo===campo&&b.tipo===tipo).length + 1;
+      nombre = (alim?.label||tipo) + ' ' + (c?.nombre||campo) + ' #' + existing;
+    }
+    if (!S.bolsones) S.bolsones = [];
+    S.bolsones.push({ id: gid(), campo, tipo, nombre, cantInicial: cant, fecha, minimo, proveedor, activo: true });
+    save(); setAlert('"'+nombre+'" agregado.','g'); render();
+  });
+  document.querySelectorAll('[data-del-bolson]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este stock? Los consumos asociados quedarán sin referencia.')) {
+      S.bolsones = (S.bolsones||[]).map(x=>x.id===b.dataset.delBolson?{...x,activo:false}:x);
+      save(); render();
+    }
+  }));
+
+  // ── STOCK — transferencia entre campos ───────────────────────────────────
+  const btnTrAdd = document.getElementById('btn-tr-add');
+  if (btnTrAdd) btnTrAdd.addEventListener('click', () => {
+    const bolsonOrigen = document.getElementById('tr-origen').value;
+    const campoDest    = document.getElementById('tr-campo-dest').value;
+    const cant         = Number(document.getElementById('tr-cant').value);
+    const nombreDest   = (document.getElementById('tr-nombre-dest').value||'').trim();
+    const fecha        = document.getElementById('tr-fecha').value;
+    if (!bolsonOrigen||!campoDest||!cant||cant<=0||!nombreDest||!fecha) { setAlert('Completá todos los campos.'); render(); return; }
+    const bolsonOrig = (S.bolsones||[]).find(b=>b.id===bolsonOrigen);
+    if (!bolsonOrig) { setAlert('Stock origen no encontrado.'); render(); return; }
+    const stockDisp = stockBolson(bolsonOrigen);
+    if (cant > stockDisp) { setAlert('La cantidad supera el stock disponible del bolsón ('+fnum(stockDisp,0)+' '+((ALIMENTOS.find(a=>a.key===bolsonOrig.tipo)||{}).unidad||'')+').'); render(); return; }
+    if (!S.transferenciasBolson) S.transferenciasBolson = [];
+    if (!S.bolsones) S.bolsones = [];
+    // Registrar transferencia
+    const trId = gid();
+    S.transferenciasBolson.push({ id: trId, fecha, bolsonOrigen, cant });
+    // Crear bolsón destino
+    S.bolsones.push({ id: gid(), campo: campoDest, tipo: bolsonOrig.tipo, nombre: nombreDest, cantInicial: cant, fecha, minimo: bolsonOrig.minimo||0, proveedor: 'Transferencia desde '+bolsonOrig.nombre, activo: true });
+    save(); setAlert('Transferencia registrada y bolsón destino creado.','g'); render();
+  });
+
+
+  // ── GITHUB TOKEN ──────────────────────────────────────────────────────────
+  const btnGhSave = document.getElementById('btn-gh-token-save');
+  if (btnGhSave) btnGhSave.addEventListener('click', () => {
+    const t = (document.getElementById('gh-token-input')?.value||'').trim();
+    if (!t) { setAlert('Ingresá el token.'); render(); return; }
+    setGithubToken(t);
+    setAlert('Token guardado. Los datos se sincronizarán con GitHub al guardar.', 'g');
+    render();
+  });
+  const btnGhTest = document.getElementById('btn-gh-token-test');
+  if (btnGhTest) btnGhTest.addEventListener('click', async () => {
+    const statusEl = document.getElementById('gh-token-status');
+    if (statusEl) statusEl.textContent = '⏳ Probando conexión...';
+    try {
+      const res = await fetch(GITHUB_API, { headers: { Authorization: 'token ' + getGithubToken(), 'User-Agent': 'corrales-app' }});
+      if (res.ok) {
+        if (statusEl) { statusEl.textContent = '✅ Conexión exitosa — GitHub responde correctamente.'; statusEl.style.color = 'var(--green)'; }
+      } else {
+        if (statusEl) { statusEl.textContent = '❌ Error ' + res.status + ' — revisá el token.'; statusEl.style.color = 'var(--red)'; }
+      }
+    } catch(e) {
+      if (statusEl) { statusEl.textContent = '❌ Sin conexión a internet.'; statusEl.style.color = 'var(--red)'; }
+    }
+  });
+  const btnGhClear = document.getElementById('btn-gh-token-clear');
+  if (btnGhClear) btnGhClear.addEventListener('click', () => {
+    if (confirm('¿Eliminás el token? Los datos seguirán guardándose en este navegador pero no se sincronizarán con GitHub.')) {
+      localStorage.removeItem('gh_token');
+      setAlert('Token eliminado.', 'g');
+      render();
+    }
+  });
+
+  // ── VETERINARIA — registrar ───────────────────────────────────────────────
+  const btnVtAdd = document.getElementById('btn-vt-add');
+  if (btnVtAdd) btnVtAdd.addEventListener('click', () => {
+    const cid      = Number(document.getElementById('vt-cid').value);
+    const fecha    = document.getElementById('vt-fecha').value;
+    const producto = document.getElementById('vt-producto').value;
+    const frascos  = Number(document.getElementById('vt-frascos').value);
+    const animales = Number(document.getElementById('vt-animales').value)||0;
+    const obs      = (document.getElementById('vt-obs').value||'').trim();
+    const precioInput = Number(document.getElementById('vt-precio').value);
+    const precio = precioInput > 0 ? precioInput : (precioVetVigente(producto, fecha)||0);
+    if (!fecha||!producto||!frascos||frascos<=0) { setAlert('Completá fecha, producto y frascos usados.'); render(); return; }
+    if (!precio||precio<=0) { setAlert('Ingresá el precio o configurá uno en Configuración.'); render(); return; }
+    if (animales > 0 && animales > stockAt(cid, fecha)) {
+      setAlert('Los animales tratados (' + fn(animales,0) + ') superan el stock del corral en esa fecha (' + fn(stockAt(cid,fecha),0) + ' cab.).'); render(); return;
+    }
+    if (!S.consumosVet) S.consumosVet = [];
+    S.consumosVet.push({ id: gid(), cid, fecha, producto, frascos, animales, precio, obs });
+    save(); setAlert('Registro veterinario guardado.','g'); render();
+  });
+
+  // Preview precio + subtotal al cambiar producto/frascos/fecha
+  function actualizarVetRefs() {
+    const prEl   = document.getElementById('vt-producto');
+    const feEl   = document.getElementById('vt-fecha');
+    const frEl   = document.getElementById('vt-frascos');
+    const anEl   = document.getElementById('vt-animales');
+    const cidEl  = document.getElementById('vt-cid');
+    const pIn    = document.getElementById('vt-precio');
+    const prRef  = document.getElementById('vt-precio-ref');
+    const subRef = document.getElementById('vt-subtotal-ref');
+    const wStock = document.getElementById('vt-warn-stock');
+    const wDosis = document.getElementById('vt-warn-dosis');
+    if (!prEl || !prRef) return;
+
+    const key   = prEl.value;
+    const fecha = feEl ? feEl.value || today() : today();
+    const p     = precioVetVigente(key, fecha);
+    const prod  = getProductosVet().find(x => x.key === key);
+
+    // Rellenar campo precio con el vigente si está vacío
+    if (pIn && !pIn.value && p) {
+      pIn.value = p;
+      pIn.style.color = 'var(--text3)'; // gris para indicar que es automático
+    } else if (pIn && pIn.value && Number(pIn.value) === p) {
+      pIn.style.color = 'var(--text3)';
+    } else if (pIn && pIn.value) {
+      pIn.style.color = 'var(--text)'; // negro = ingresado manualmente
+    }
+
+    const manualP = Number(pIn ? pIn.value : 0) || 0;
+    const precioEfectivo = manualP > 0 ? manualP : (p || 0);
+
+    // Precio vigente — referencia
+    if (prRef) {
+      if (p) {
+        prRef.textContent = '✓ Precio vigente: ' + fmon(p) + '/frasco' + (manualP && manualP !== p ? ' (usando precio manual: ' + fmon(manualP) + ')' : '');
+        prRef.style.color = 'var(--green)';
+      } else {
+        prRef.textContent = '⚠ Sin precio configurado para este producto';
+        prRef.style.color = 'var(--red)';
+      }
+    }
+
+    // Subtotal
+    const fr = Number(frEl ? frEl.value : 0) || 0;
+    if (subRef) {
+      if (fr > 0 && precioEfectivo > 0) {
+        let txt = '→ Subtotal: ' + fmon(fr * precioEfectivo);
+        if (prod?.mlFrasco && prod?.mlDosis) {
+          txt += '  ·  ~' + Math.round(fr * prod.mlFrasco / prod.mlDosis) + ' animales estimados';
+        }
+        subRef.textContent = txt;
+      } else {
+        subRef.textContent = '';
+      }
+    }
+
+    // Validación stock
+    const an  = Number(anEl ? anEl.value : 0) || 0;
+    const cid = Number(cidEl ? cidEl.value : 0);
+    if (wStock) {
+      wStock.style.display = 'none';
+      if (an > 0 && cid > 0) {
+        const stk = stockAt(cid, fecha);
+        if (an > stk) {
+          wStock.textContent = '⛔ Animales tratados (' + fn(an,0) + ') supera el stock en esa fecha (' + fn(stk,0) + ' cab.).';
+          wStock.style.display = 'block';
+        }
+      }
+    }
+
+    // Advertencia dosis
+    if (wDosis) {
+      wDosis.style.display = 'none';
+      if (fr > 0 && an > 0 && prod?.mlFrasco && prod?.mlDosis) {
+        const mlPorAnim = (fr * prod.mlFrasco) / an;
+        const ratio = mlPorAnim / prod.mlDosis;
+        if (ratio > 1.5) {
+          wDosis.innerHTML = '⚠️ <strong>Dosis alta:</strong> ' + fn(mlPorAnim,1) + ' ml/animal (' + fn(ratio,1) + 'x la esperada de ' + fn(prod.mlDosis,1) + ' ml). ¿Revisás frascos o animales?';
+          wDosis.style.display = 'block';
+        } else if (ratio < 0.5) {
+          wDosis.innerHTML = '⚠️ <strong>Dosis baja:</strong> ' + fn(mlPorAnim,1) + ' ml/animal (' + fn(ratio,2) + 'x la esperada). ¿Revisás frascos o animales?';
+          wDosis.style.display = 'block';
+        }
+      }
+    }
+  }
+  ['vt-producto','vt-fecha','vt-frascos','vt-animales','vt-precio','vt-cid'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input',  actualizarVetRefs);
+      el.addEventListener('change', actualizarVetRefs);
+      el.addEventListener('keyup',  actualizarVetRefs);
+    }
+  });
+  // Limpiar campo precio al cambiar producto/fecha para que se re-autocomplete
+  ['vt-producto','vt-fecha'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => {
+      const pIn = document.getElementById('vt-precio');
+      if (pIn) { pIn.value = ''; pIn.style.color = 'var(--text3)'; }
+    });
+  });
+  actualizarVetRefs();
+
+  document.querySelectorAll('[data-edit-vt]').forEach(b => b.addEventListener('click', () => openEditConsumoVet(b.dataset.editVt)));
+  document.querySelectorAll('[data-del-vt]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este registro?')) {
+      S.consumosVet = (S.consumosVet||[]).filter(v=>v.id!==b.dataset.delVt);
+      save(); render();
+    }
+  }));
+
+  // ── CONFIG — ABM productos vet ────────────────────────────────────────────
+  document.querySelectorAll('[data-edit-pvet]').forEach(b => b.addEventListener('click', () => openEditProductoVet(b.dataset.editPvet)));
+  document.querySelectorAll('[data-del-pvet]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este producto?')) {
+      if (!S.productosVet||!S.productosVet.length) S.productosVet = JSON.parse(JSON.stringify(getProductosVet()));
+      S.productosVet = S.productosVet.filter(p=>p.key!==b.dataset.delPvet);
+      S.preciosVet   = (S.preciosVet||[]).filter(p=>p.key!==b.dataset.delPvet);
+      save(); render();
+    }
+  }));
+  const btnNpvAdd = document.getElementById('btn-npv-add');
+  if (btnNpvAdd) btnNpvAdd.addEventListener('click', () => {
+    const label  = (document.getElementById('npv-label').value||'').trim();
+    const icon   = (document.getElementById('npv-icon').value||'💉').trim();
+    const mlFrasco = Number(document.getElementById('npv-frasco').value)||0;
+    const mlDosis  = Number(document.getElementById('npv-dosis').value)||0;
+    const precioDefault = Number(document.getElementById('npv-precio').value)||0;
+    if (!label) { setAlert('Ingresá el nombre del producto.'); render(); return; }
+    if (!S.productosVet||!S.productosVet.length) S.productosVet = JSON.parse(JSON.stringify(getProductosVet()));
+    if (S.productosVet.some(p=>p.label.toLowerCase()===label.toLowerCase())) { setAlert('Ya existe un producto con ese nombre.'); render(); return; }
+    const key = label.toLowerCase().replace(/[^a-z0-9]/g,'_') + '_' + Date.now().toString(36);
+    S.productosVet.push({ key, label, icon, mlFrasco, mlDosis, precioDefault });
+    save(); setAlert('"'+label+'" agregado.','g'); render();
+  });
+
+  // CONFIG — precios vet con vigencia
+  const btnPvAdd = document.getElementById('btn-pv-add');
+  if (btnPvAdd) btnPvAdd.addEventListener('click', () => {
+    const key   = document.getElementById('pv-tipo').value;
+    const fecha = document.getElementById('pv-fecha').value;
+    const valor = Number(document.getElementById('pv-valor').value);
+    if (!fecha||!valor||valor<=0) { setAlert('Completá todos los campos.'); render(); return; }
+    if (!S.preciosVet) S.preciosVet = [];
+    S.preciosVet = S.preciosVet.filter(p=>!(p.key===key&&p.fecha===fecha));
+    S.preciosVet.push({ id: gid(), key, fecha, valor });
+    save(); setAlert('Precio registrado.','g'); render();
+  });
+  document.querySelectorAll('[data-del-pv]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('¿Eliminás este precio?')) {
+      S.preciosVet = (S.preciosVet||[]).filter(p=>p.id!==b.dataset.delPv);
+      save(); render();
+    }
+  }));
+
 }
 
 // INIT
-try{const _d={"ingresos":[{"id":"mpteogfvghuxfcl5m7","cid":1,"fecha":"2026-04-14","cant":185,"kg":335,"precio":4500},{"id":"mpvom5yw2ssqr1xrurt","cid":3,"fecha":"2026-05-05","cant":191,"kg":336,"precio":4500},{"id":"mpvorrxays8hyaocli","cid":2,"fecha":"2025-12-16","cant":150,"kg":333,"precio":4000},{"id":"mpvosdsgo8juzaoe49","cid":2,"fecha":"2025-12-16","cant":4,"kg":450,"precio":4000}],"ventas":[{"id":"mpvotoo8a2xflk16gnq","cid":2,"fecha":"2025-12-21","cant":1,"kg":333,"precio":0,"baja":true},{"id":"mpvp6lidbh10a3z61uw","cid":2,"fecha":"2026-03-26","cant":2,"kg":449,"precio":4500},{"id":"mpvp8b2dzw0k7sikwi","cid":2,"fecha":"2026-03-26","cant":1,"kg":405,"precio":4500},{"id":"mpvpb8m64vroj6f696q","cid":2,"fecha":"2026-04-24","cant":33,"kg":515,"precio":4573},{"id":"mpvpdeb49g8mfrgeo8n","cid":2,"fecha":"2026-05-19","cant":33,"kg":509,"precio":4686}],"consumos":[{"id":"mpteothepw7bf2wmt3","cid":1,"fecha":"2026-04-17","tipo":"maiz","cant":8000,"precio":168},{"id":"mptep74iklveyc82ro","cid":1,"fecha":"2026-04-21","tipo":"maiz","cant":16000,"precio":168},{"id":"mptepk0ylpzpt5ppd48","cid":1,"fecha":"2026-04-27","tipo":"maiz","cant":5000,"precio":168},{"id":"mptepw4q3udsw6wjbbv","cid":1,"fecha":"2026-05-08","tipo":"maiz","cant":8000,"precio":168},{"id":"mpteq3wi2s3w1oy9o4f","cid":1,"fecha":"2026-05-14","tipo":"maiz","cant":8000,"precio":168},{"id":"mpter19ebinysft9va8","cid":1,"fecha":"2026-05-18","tipo":"maiz","cant":8000,"precio":168},{"id":"mptera56pgmrcl8r08","cid":1,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mptes3u9w3ut68aehz","cid":1,"fecha":"2026-04-21","tipo":"rollos","cant":6,"precio":100000},{"id":"mptesgq2vnvm1buvucg","cid":1,"fecha":"2026-04-24","tipo":"rollos","cant":5,"precio":100000},{"id":"mptet5nu0ut0tp4tixnl","cid":1,"fecha":"2026-05-02","tipo":"rollos","cant":13,"precio":100000},{"id":"mptetjhlv8vrj4jk6us","cid":1,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteu2oybfczmaemxxr","cid":1,"fecha":"2026-05-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteumt5wevaqidn1o","cid":1,"fecha":"2026-05-18","tipo":"rollos","cant":6,"precio":100000},{"id":"mpteuvysvdh0gqp5x77","cid":1,"fecha":"2026-05-31","tipo":"rollos","cant":6,"precio":100000},{"id":"mptevt9k5ow2k2fb8z6","cid":1,"fecha":"2026-04-17","tipo":"concentrado","cant":800,"precio":530},{"id":"mptew8rd11yb1118wb9","cid":1,"fecha":"2026-04-21","tipo":"concentrado","cant":1600,"precio":530},{"id":"mptewjgh35iqz9xg3mb","cid":1,"fecha":"2026-04-27","tipo":"concentrado","cant":400,"precio":530},{"id":"mptewsc10xsd6k6nesuk","cid":1,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mptex5d5mc428b6ghe","cid":1,"fecha":"2026-05-14","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexczsc82cwl9k6i9","cid":1,"fecha":"2026-05-18","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexmapuejj5d4rg","cid":1,"fecha":"2026-05-21","tipo":"concentrado","cant":250,"precio":530},{"id":"mptexuiodd47mzu1w","cid":1,"fecha":"2026-05-28","tipo":"concentrado","cant":250,"precio":530},{"id":"mptezeap4c6pihlfpxe","cid":1,"fecha":"2026-05-28","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvomlks8r6u19x4nrr","cid":3,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvomvj162qkqid9eli","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvon7a0h5p47u3218s","cid":3,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mpvoo6klxxfhv2sraki","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvooflyolhii9kt4wk","cid":3,"fecha":"2026-05-15","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvop2srpyweh8o8gt","cid":3,"fecha":"2026-05-16","tipo":"rollos","cant":5,"precio":100000},{"id":"mpvopbd97z3xn612cih","cid":3,"fecha":"2026-05-28","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvopntpbx862m9o27v","cid":3,"fecha":"2026-05-28","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvopxulk5s3j1x096i","cid":3,"fecha":"2026-05-29","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvoq68vyq4p8xlwfl","cid":3,"fecha":"2026-05-29","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvostlb0jakykit9mjs","cid":2,"fecha":"2025-12-18","tipo":"maiz","cant":17000,"precio":168},{"id":"mpvot50crr7dhkdjbh","cid":2,"fecha":"2025-12-20","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvou480ons76dfc5a","cid":2,"fecha":"2025-12-23","tipo":"maiz","cant":9000,"precio":168},{"id":"mpvouf586pxw0rr8ks2","cid":2,"fecha":"2026-01-02","tipo":"rollos","cant":12,"precio":100000},{"id":"mpvoupksdlhc2an5g4i","cid":2,"fecha":"2026-01-09","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvouyqxl5cach1xgt","cid":2,"fecha":"2026-01-09","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvovebv29jiyqygsv5","cid":2,"fecha":"2026-01-26","tipo":"rollos","cant":16,"precio":100000},{"id":"mpvovqwwkj5312aej7","cid":2,"fecha":"2026-02-03","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvow48cod23uplzro","cid":2,"fecha":"2026-02-03","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvoyqnirg393omkr3","cid":2,"fecha":"2026-02-09","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvoz0cib2tpdv7chdk","cid":2,"fecha":"2026-02-09","tipo":"concentrado","cant":350,"precio":530},{"id":"mpvoz89gakifye1nvmb","cid":2,"fecha":"2026-02-13","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvozgbob5ac6s5kdub","cid":2,"fecha":"2026-02-13","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvozqroefs8lsncjii","cid":2,"fecha":"2026-02-19","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvozz5k4q63qvps94","cid":2,"fecha":"2026-02-19","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvp0m0yq6p96afyrfj","cid":2,"fecha":"2026-02-23","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp0x5qgtp1367q1oo","cid":2,"fecha":"2026-02-23","tipo":"concentrado","cant":700,"precio":530},{"id":"mpvp16icahq7n1nu04j","cid":2,"fecha":"2026-02-26","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp1ev9rxvy57wy2b","cid":2,"fecha":"2026-02-28","tipo":"maiz","cant":6000,"precio":168},{"id":"mpvp1vje0w8v8b8wemn","cid":2,"fecha":"2026-02-28","tipo":"concentrado","cant":600,"precio":530},{"id":"mpvp26tq2qc0z562nz3","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp2klyxsvxkuqpuk","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp2unmyfvjkgtjxyh","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp33l8hrbw0swur7","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp3fe4qsrd67tnyqn","cid":2,"fecha":"2026-03-06","tipo":"rollos","cant":6,"precio":100000},{"id":"mpvp3n8vfoublxg5rc","cid":2,"fecha":"2026-03-19","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvp3wdxyq3dkg83m9n","cid":2,"fecha":"2026-03-23","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp4ryid9mqlzh96io","cid":2,"fecha":"2026-03-23","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp55hpiu1yk3owxv","cid":2,"fecha":"2026-03-31","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp5dkohsl9p9qsuco","cid":2,"fecha":"2026-04-03","tipo":"maiz","cant":27500,"precio":168},{"id":"mpvp91z4y8ddc3rb3z","cid":2,"fecha":"2026-04-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvp99u67dbddb9ibgv","cid":2,"fecha":"2026-04-17","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvp9jrhjovviqqkins","cid":2,"fecha":"2026-04-24","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvp9rzggyzp4ltmeuc","cid":2,"fecha":"2026-04-29","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvpa00vk910ig6wez","cid":2,"fecha":"2026-05-01","tipo":"rollos","cant":2,"precio":100000},{"id":"mpvpaa4gaimjzf6zjy","cid":2,"fecha":"2026-05-07","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvpbx9ogoqwr4zwelo","cid":2,"fecha":"2026-05-07","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvpc5cmcrubrq1kf0q","cid":2,"fecha":"2026-05-04","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvpcdqodcxlwg55mi","cid":2,"fecha":"2026-05-16","tipo":"rollos","cant":8,"precio":100000},{"id":"mpvpclq54sly8cqgnkx","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpdsuks7ji0ipdm3n","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpe01ooz30g0h6op","cid":2,"fecha":"2026-06-01","tipo":"maiz","cant":4000,"precio":168}],"pesadas":[{"id":"mpvz9511uypyy2yvo6o","cid":2,"fecha":"2026-02-04","cant":153,"kg":405},{"id":"mpvz9fcsvyrskrhgt1","cid":2,"fecha":"2026-03-23","cant":153,"kg":485},{"id":"mpvz9skjwszx9s79rhb","cid":2,"fecha":"2026-05-07","cant":117,"kg":523},{"id":"mpyfp3ha43pza5lwp4x","cid":3,"fecha":"2026-06-02","cant":189,"kg":373},{"id":"mq04ib84dm00oriuxx","cid":1,"fecha":"2026-05-13","cant":185,"kg":388}],"preciosStock":{"1":4300,"2":4300,"3":4300},"pesoObjetivo":{},"precioProyectado":{},"lotesCerrados":[],"corrales":null};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;}catch(e){loadData();}
+try{const _d={"ingresos":[{"id":"mpteogfvghuxfcl5m7","cid":1,"fecha":"2026-04-14","cant":185,"kg":335,"precio":4500},{"id":"mpvom5yw2ssqr1xrurt","cid":3,"fecha":"2026-05-05","cant":191,"kg":336,"precio":4500},{"id":"mpvorrxays8hyaocli","cid":2,"fecha":"2025-12-16","cant":150,"kg":333,"precio":4000},{"id":"mpvosdsgo8juzaoe49","cid":2,"fecha":"2025-12-16","cant":4,"kg":450,"precio":4000}],"ventas":[{"id":"mpvotoo8a2xflk16gnq","cid":2,"fecha":"2025-12-21","cant":1,"kg":333,"precio":0,"baja":true},{"id":"mpvp6lidbh10a3z61uw","cid":2,"fecha":"2026-03-26","cant":2,"kg":449,"precio":4500},{"id":"mpvp8b2dzw0k7sikwi","cid":2,"fecha":"2026-03-26","cant":1,"kg":405,"precio":4500},{"id":"mpvpb8m64vroj6f696q","cid":2,"fecha":"2026-04-24","cant":33,"kg":515,"precio":4573},{"id":"mpvpdeb49g8mfrgeo8n","cid":2,"fecha":"2026-05-19","cant":33,"kg":509,"precio":4,"liquidado":true,"kgLiquidados":16810,"rinde":null,"desbaste":0,"precioLiq":4595,"importeTotal":67240}],"consumos":[{"id":"mpteothepw7bf2wmt3","cid":1,"fecha":"2026-04-17","tipo":"maiz","cant":8000,"precio":168},{"id":"mptep74iklveyc82ro","cid":1,"fecha":"2026-04-21","tipo":"maiz","cant":16000,"precio":168},{"id":"mptepk0ylpzpt5ppd48","cid":1,"fecha":"2026-04-27","tipo":"maiz","cant":5000,"precio":168},{"id":"mptepw4q3udsw6wjbbv","cid":1,"fecha":"2026-05-08","tipo":"maiz","cant":8000,"precio":168},{"id":"mpteq3wi2s3w1oy9o4f","cid":1,"fecha":"2026-05-14","tipo":"maiz","cant":8000,"precio":168},{"id":"mpter19ebinysft9va8","cid":1,"fecha":"2026-05-18","tipo":"maiz","cant":8000,"precio":168},{"id":"mptera56pgmrcl8r08","cid":1,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mptes3u9w3ut68aehz","cid":1,"fecha":"2026-04-21","tipo":"rollos","cant":6,"precio":100000},{"id":"mptesgq2vnvm1buvucg","cid":1,"fecha":"2026-04-24","tipo":"rollos","cant":5,"precio":100000},{"id":"mptet5nu0ut0tp4tixnl","cid":1,"fecha":"2026-05-02","tipo":"rollos","cant":13,"precio":100000},{"id":"mptetjhlv8vrj4jk6us","cid":1,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteu2oybfczmaemxxr","cid":1,"fecha":"2026-05-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpteumt5wevaqidn1o","cid":1,"fecha":"2026-05-18","tipo":"rollos","cant":6,"precio":100000},{"id":"mpteuvysvdh0gqp5x77","cid":1,"fecha":"2026-05-31","tipo":"rollos","cant":6,"precio":100000},{"id":"mptevt9k5ow2k2fb8z6","cid":1,"fecha":"2026-04-17","tipo":"concentrado","cant":800,"precio":530},{"id":"mptew8rd11yb1118wb9","cid":1,"fecha":"2026-04-21","tipo":"concentrado","cant":1600,"precio":530},{"id":"mptewjgh35iqz9xg3mb","cid":1,"fecha":"2026-04-27","tipo":"concentrado","cant":400,"precio":530},{"id":"mptewsc10xsd6k6nesuk","cid":1,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mptex5d5mc428b6ghe","cid":1,"fecha":"2026-05-14","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexczsc82cwl9k6i9","cid":1,"fecha":"2026-05-18","tipo":"concentrado","cant":800,"precio":530},{"id":"mptexmapuejj5d4rg","cid":1,"fecha":"2026-05-21","tipo":"concentrado","cant":250,"precio":530},{"id":"mptexuiodd47mzu1w","cid":1,"fecha":"2026-05-28","tipo":"concentrado","cant":250,"precio":530},{"id":"mptezeap4c6pihlfpxe","cid":1,"fecha":"2026-05-28","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvomlks8r6u19x4nrr","cid":3,"fecha":"2026-05-08","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvomvj162qkqid9eli","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvon7a0h5p47u3218s","cid":3,"fecha":"2026-05-08","tipo":"concentrado","cant":800,"precio":530},{"id":"mpvoo6klxxfhv2sraki","cid":3,"fecha":"2026-05-08","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvooflyolhii9kt4wk","cid":3,"fecha":"2026-05-15","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvop2srpyweh8o8gt","cid":3,"fecha":"2026-05-16","tipo":"rollos","cant":5,"precio":100000},{"id":"mpvopbd97z3xn612cih","cid":3,"fecha":"2026-05-28","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvopntpbx862m9o27v","cid":3,"fecha":"2026-05-28","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvopxulk5s3j1x096i","cid":3,"fecha":"2026-05-29","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvoq68vyq4p8xlwfl","cid":3,"fecha":"2026-05-29","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvostlb0jakykit9mjs","cid":2,"fecha":"2025-12-18","tipo":"maiz","cant":17000,"precio":168},{"id":"mpvot50crr7dhkdjbh","cid":2,"fecha":"2025-12-20","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvou480ons76dfc5a","cid":2,"fecha":"2025-12-23","tipo":"maiz","cant":9000,"precio":168},{"id":"mpvouf586pxw0rr8ks2","cid":2,"fecha":"2026-01-02","tipo":"rollos","cant":12,"precio":100000},{"id":"mpvoupksdlhc2an5g4i","cid":2,"fecha":"2026-01-09","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvouyqxl5cach1xgt","cid":2,"fecha":"2026-01-09","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvovebv29jiyqygsv5","cid":2,"fecha":"2026-01-26","tipo":"rollos","cant":16,"precio":100000},{"id":"mpvovqwwkj5312aej7","cid":2,"fecha":"2026-02-03","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvow48cod23uplzro","cid":2,"fecha":"2026-02-03","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvoyqnirg393omkr3","cid":2,"fecha":"2026-02-09","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvoz0cib2tpdv7chdk","cid":2,"fecha":"2026-02-09","tipo":"concentrado","cant":350,"precio":530},{"id":"mpvoz89gakifye1nvmb","cid":2,"fecha":"2026-02-13","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvozgbob5ac6s5kdub","cid":2,"fecha":"2026-02-13","tipo":"concentrado","cant":400,"precio":530},{"id":"mpvozqroefs8lsncjii","cid":2,"fecha":"2026-02-19","tipo":"maiz","cant":12000,"precio":168},{"id":"mpvozz5k4q63qvps94","cid":2,"fecha":"2026-02-19","tipo":"concentrado","cant":1200,"precio":530},{"id":"mpvp0m0yq6p96afyrfj","cid":2,"fecha":"2026-02-23","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp0x5qgtp1367q1oo","cid":2,"fecha":"2026-02-23","tipo":"concentrado","cant":700,"precio":530},{"id":"mpvp16icahq7n1nu04j","cid":2,"fecha":"2026-02-26","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp1ev9rxvy57wy2b","cid":2,"fecha":"2026-02-28","tipo":"maiz","cant":6000,"precio":168},{"id":"mpvp1vje0w8v8b8wemn","cid":2,"fecha":"2026-02-28","tipo":"concentrado","cant":600,"precio":530},{"id":"mpvp26tq2qc0z562nz3","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp2klyxsvxkuqpuk","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp2unmyfvjkgtjxyh","cid":2,"fecha":"2026-03-06","tipo":"maiz","cant":7000,"precio":168},{"id":"mpvp33l8hrbw0swur7","cid":2,"fecha":"2026-03-06","tipo":"concentrado","cant":750,"precio":530},{"id":"mpvp3fe4qsrd67tnyqn","cid":2,"fecha":"2026-03-06","tipo":"rollos","cant":6,"precio":100000},{"id":"mpvp3n8vfoublxg5rc","cid":2,"fecha":"2026-03-19","tipo":"maiz","cant":18000,"precio":168},{"id":"mpvp3wdxyq3dkg83m9n","cid":2,"fecha":"2026-03-23","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp4ryid9mqlzh96io","cid":2,"fecha":"2026-03-23","tipo":"maiz","cant":7500,"precio":168},{"id":"mpvp55hpiu1yk3owxv","cid":2,"fecha":"2026-03-31","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvp5dkohsl9p9qsuco","cid":2,"fecha":"2026-04-03","tipo":"maiz","cant":27500,"precio":168},{"id":"mpvp91z4y8ddc3rb3z","cid":2,"fecha":"2026-04-14","tipo":"rollos","cant":4,"precio":100000},{"id":"mpvp99u67dbddb9ibgv","cid":2,"fecha":"2026-04-17","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvp9jrhjovviqqkins","cid":2,"fecha":"2026-04-24","tipo":"rollos","cant":7,"precio":100000},{"id":"mpvp9rzggyzp4ltmeuc","cid":2,"fecha":"2026-04-29","tipo":"maiz","cant":3500,"precio":168},{"id":"mpvpa00vk910ig6wez","cid":2,"fecha":"2026-05-01","tipo":"rollos","cant":2,"precio":100000},{"id":"mpvpaa4gaimjzf6zjy","cid":2,"fecha":"2026-05-07","tipo":"maiz","cant":10000,"precio":168},{"id":"mpvpbx9ogoqwr4zwelo","cid":2,"fecha":"2026-05-07","tipo":"rollos","cant":3,"precio":100000},{"id":"mpvpc5cmcrubrq1kf0q","cid":2,"fecha":"2026-05-04","tipo":"maiz","cant":4000,"precio":168},{"id":"mpvpcdqodcxlwg55mi","cid":2,"fecha":"2026-05-16","tipo":"rollos","cant":8,"precio":100000},{"id":"mpvpclq54sly8cqgnkx","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpdsuks7ji0ipdm3n","cid":2,"fecha":"2026-05-21","tipo":"maiz","cant":8000,"precio":168},{"id":"mpvpe01ooz30g0h6op","cid":2,"fecha":"2026-06-01","tipo":"maiz","cant":4000,"precio":168}],"pesadas":[{"id":"mpvz9511uypyy2yvo6o","cid":2,"fecha":"2026-02-04","cant":153,"kg":405},{"id":"mpvz9fcsvyrskrhgt1","cid":2,"fecha":"2026-03-23","cant":153,"kg":485},{"id":"mpvz9skjwszx9s79rhb","cid":2,"fecha":"2026-05-07","cant":117,"kg":523},{"id":"mpyfp3ha43pza5lwp4x","cid":3,"fecha":"2026-06-02","cant":189,"kg":373},{"id":"mq04ib84dm00oriuxx","cid":1,"fecha":"2026-05-13","cant":185,"kg":388}],"preciosStock":{"1":4300,"2":4300,"3":4300},"pesoObjetivo":{"1":520,"2":520,"3":520},"precioProyectado":{"1":4350,"2":4350,"3":4350},"lotesCerrados":[],"corrales":null,"tipoCambio":[{"id":"mqblfov6c0vgq189han","fecha":"2025-12-01","valor":1425},{"id":"mqblg4hb2pwzt4otjo7","fecha":"2026-01-01","valor":1445},{"id":"mqblghu12uvqjl95b61","fecha":"2026-02-01","valor":1420},{"id":"mqblgu6kxuqc9f6luuh","fecha":"2026-03-01","valor":1365},{"id":"mqblh3utkldzv1kbqja","fecha":"2026-04-01","valor":1365},{"id":"mqblhfl9ldj578gxdj","fecha":"2026-05-01","valor":1375},{"id":"mqblhp52trfrhlbheh8","fecha":"2026-06-01","valor":1395}],"preciosAlim":[{"id":"mqblel0rkmjtymf49er","tipo":"maiz","fecha":"2025-12-01","valor":530},{"id":"mqblexpnizaz9fhi14g","tipo":"rollos","fecha":"2025-12-01","valor":100000},{"id":"mqblf8vj4aqe5dus0eb","tipo":"concentrado","fecha":"2025-12-01","valor":530},{"id":"mqfl2eqm7a0shnle25p","tipo":"sales_mqfkv1bl","fecha":"2026-06-15","valor":500}],"notas":[],"productosVet":[{"key":"suplenut","label":"Suplenut","icon":"💉","precioDefault":750000,"mlFrasco":500,"mlDosis":10},{"key":"adevet","label":"Adevet","icon":"💊","precioDefault":500000,"mlFrasco":250,"mlDosis":4},{"key":"ivermectrina_mqeec1m0","label":"Ivermectrina","icon":"💉","mlFrasco":500,"mlDosis":5,"precioDefault":75000}],"preciosVet":[],"consumosVet":[{"id":"mqeehi0kesjr9vsale","cid":2,"fecha":"2026-06-14","producto":"suplenut","frascos":1,"animales":60,"precio":750000,"obs":""}],"bolsones":[{"id":"mqfkgd1gr7zusfuhz5q","campo":"misterio","tipo":"maiz","nombre":"Bolson 1","cantInicial":112250,"fecha":"2026-06-15","minimo":5000,"proveedor":"","activo":true},{"id":"mqfkizprjq0qtzrqbi","campo":"misterio","tipo":"maiz","nombre":"Bolson 1","cantInicial":112500,"fecha":"2026-06-15","minimo":0,"proveedor":"","activo":false},{"id":"mqfkjtl0nyznnomwj9c","campo":"misterio","tipo":"rollos","nombre":"Rollos El Misterio #1","cantInicial":1179,"fecha":"2026-06-15","minimo":50,"proveedor":"","activo":true},{"id":"mqfkl6xhhlyo9lf0mqp","campo":"cencerro","tipo":"maiz","nombre":"Bolson 1","cantInicial":352070,"fecha":"2026-06-15","minimo":50000,"proveedor":"","activo":true},{"id":"mqfklz0ytqj3b548g4","campo":"cencerro","tipo":"rollos","nombre":"Rollos El Cencerro #1","cantInicial":137,"fecha":"2026-06-15","minimo":50,"proveedor":"","activo":true},{"id":"mqfl0imp7k3eyugslmb","campo":"cencerro","tipo":"sales_mqfkv1bl","nombre":"Sales El Cencerro #1","cantInicial":252,"fecha":"2026-06-15","minimo":10,"proveedor":"","activo":true},{"id":"mqfln07mjqethtzdw5","campo":"misterio","tipo":"concentrado","nombre":"Concentrado El Misterio #1","cantInicial":121,"fecha":"2026-06-15","minimo":10,"proveedor":"","activo":true}],"transferenciasBolson":[],"comprasVet":[],"insumosExtra":[{"key":"sales_mqfkv1bl","label":"Sales","icon":"🧂","unidad":"Bolsas"}],"consumosCampo":[],"moneda":"ARS"};S.ingresos=_d.ingresos;S.ventas=_d.ventas;S.consumos=_d.consumos;S.pesadas=_d.pesadas||[];S.preciosStock=_d.preciosStock||{};S.pesoObjetivo=_d.pesoObjetivo||{};S.precioProyectado=_d.precioProyectado||{};S.lotesCerrados=_d.lotesCerrados||[];S.corrales=_d.corrales||null;S.tipoCambio=_d.tipoCambio||[];S.preciosAlim=_d.preciosAlim||[];S.notas=_d.notas||[];S.productosVet=_d.productosVet||null;S.preciosVet=_d.preciosVet||[];S.consumosVet=_d.consumosVet||[];S.bolsones=_d.bolsones||[];S.transferenciasBolson=_d.transferenciasBolson||[];S.comprasVet=_d.comprasVet||[];S.insumosExtra=_d.insumosExtra||[];S.consumosCampo=_d.consumosCampo||[];if(_d.moneda)S.moneda=_d.moneda;}catch(e){loadData();}
 render();
 </script>
+
+
 </body></html>
