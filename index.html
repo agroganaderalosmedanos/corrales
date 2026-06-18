@@ -19,7 +19,7 @@
   --navy: #1f4d2b; --navy-text: #e6efe3;
   --radius: 10px; --radius-lg: 16px;
   --serif: 'Aptos', 'Calibri', 'Segoe UI', -apple-system, sans-serif;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sans: 'Aptos', 'Calibri', 'Segoe UI', -apple-system, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--sans); background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
@@ -45,8 +45,13 @@ body { font-family: var(--sans); background: var(--bg3); color: var(--text); fon
 .ctab.active { background: var(--navy); color: var(--navy-text); border-color: var(--navy); }
 .ctab .stk { font-size: 11px; opacity: .7; margin-left: 4px; }
 
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 18px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 18px; }
 .kpi { background: var(--bg); padding: 16px 18px; }
+.kpi.compact { padding: 7px 12px; }
+.kpi.compact .kpi-icon { font-size: 14px; margin-bottom: 2px; }
+.kpi.compact .kpi-label { font-size: 11px; margin-bottom: 2px; }
+.kpi.compact .kpi-val { font-size: 16px; }
+.kpi.compact .kpi-sub { font-size: 10.5px; }
 .kpi-icon { font-size: 20px; margin-bottom: 6px; }
 .kpi-label { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px; }
 .kpi-val { font-size: 21px; font-weight: 600; letter-spacing: -.5px; line-height: 1; color: var(--text); }
@@ -1585,11 +1590,11 @@ function buildDashboard() {
   <div class="kpi-grid" style="margin-bottom:1px">
     <div class="kpi"><div class="kpi-icon">🐄</div><div class="kpi-label">Stock total</div><div class="kpi-val">${fn(totAn,0)}</div><div class="kpi-sub">animales en corrales</div></div>
     <div class="kpi"><div class="kpi-icon">💵</div><div class="kpi-label">Ingreso por ventas</div><div class="kpi-val">${fmon(totIv)}</div></div>
-    <div class="kpi" style="${totIvStock>0?'border-top:2px solid var(--green)':''}"><div class="kpi-icon">🏷️</div><div class="kpi-label">Stock valorizado</div><div class="kpi-val ${totIvStock>0?'kpi-pos':''}">${totIvStock>0?fmon(totIvStock):'—'}</div><div class="kpi-sub">${totIvStock>0?`ingresos totales: ${fmon(totIvTotal)}`:'ingresá precio en Costos'}</div></div>
+    <div class="kpi"><div class="kpi-icon">🏷️</div><div class="kpi-label">Stock valorizado</div><div class="kpi-val ${totIvStock>0?'kpi-pos':''}">${totIvStock>0?fmon(totIvStock):'—'}</div><div class="kpi-sub">${totIvStock>0?`ingresos totales: ${fmon(totIvTotal)}`:'ingresá precio en Costos'}</div></div>
     <div class="kpi"><div class="kpi-icon">🛒</div><div class="kpi-label">Costo de compra</div><div class="kpi-val">${fmon(totCC)}</div></div>
     <div class="kpi"><div class="kpi-icon">🌿</div><div class="kpi-label">Costo de alimentación</div><div class="kpi-val">${fmon(totCA)}</div></div>
-    ${totCV>0?`<div class="kpi" style="border-top:2px solid #9b59b6"><div class="kpi-icon">🩺</div><div class="kpi-label">Costo veterinario</div><div class="kpi-val" style="color:#9b59b6">${fmon(totCV)}</div><div class="kpi-sub">sin vet: ${fmon(totRes)} · con vet: ${fmon(totRes-totCV)}</div></div>`:''}
-    <div class="kpi" style="border-top:2px solid ${totRes>=0?'var(--green)':'var(--red)'}">
+    ${totCV>0?`<div class="kpi"><div class="kpi-icon">🩺</div><div class="kpi-label">Costo veterinario</div><div class="kpi-val" style="color:#9b59b6">${fmon(totCV)}</div><div class="kpi-sub">sin vet: ${fmon(totRes)} · con vet: ${fmon(totRes-totCV)}</div></div>`:''}
+    <div class="kpi">
       <div class="kpi-icon">${totRes>=0?'📈':'📉'}</div>
       <div class="kpi-label">Utilidad neta</div>
       <div class="kpi-val ${totRes>=0?'kpi-pos':'kpi-neg'}">${fmon(totRes)}</div>
@@ -1616,12 +1621,12 @@ function buildDashboard() {
   });
   const ganDiariaProm = ganDiariaItems.length ? ganDiariaItems.reduce((s,x)=>s+x.gan,0)/ganDiariaItems.length : null;
 
-  h += `<div class="kpi-grid" style="margin-bottom:18px">
-    <div class="kpi"><div class="kpi-icon">📥</div><div class="kpi-label">Kg ingresados</div><div class="kpi-val">${fn(totKgI,0)}</div><div class="kpi-sub">kg al entrar al corral</div></div>
-    <div class="kpi"><div class="kpi-icon">⚖️</div><div class="kpi-label">Kg vendidos</div><div class="kpi-val">${fn(totKgV,0)}</div><div class="kpi-sub">kg totales egresados</div></div>
-    <div class="kpi"><div class="kpi-icon">🐄</div><div class="kpi-label">Kg en stock</div><div class="kpi-val">${fn(totKgStk,0)}</div><div class="kpi-sub">${fn(totAn,0)} animales · última pesada</div></div>
-    <div class="kpi" style="border-top:2px solid var(--green)"><div class="kpi-icon">📊</div><div class="kpi-label">Kg ganados</div><div class="kpi-val kpi-pos">${fn(totKgG,0)}</div><div class="kpi-sub">${(() => { const vend = CORRALES.reduce((s,c)=>s+totIng(c.id)-stockNow(c.id),0); const ganXAnimal = CORRALES.map(c=>{ const p=(S.pesadas||[]).filter(x=>x.cid===c.id).sort((a,b)=>a.fecha.localeCompare(b.fecha)); const i2=S.ingresos.filter(x=>x.cid===c.id); const t=i2.reduce((s,x)=>s+Number(x.cant),0); const kp=t>0?i2.reduce((s,x)=>s+Number(x.cant)*Number(x.kg),0)/t:0; return p.length&&kp>0?Number(p[p.length-1].kg)-kp:null; }).filter(x=>x!==null); return ganXAnimal.length>0 ? fn(ganXAnimal.reduce((s,x)=>s+x,0)/ganXAnimal.length,1)+' kg gan./animal (prom.)' : 'sin pesadas'; })()}</div></div>
-    <div class="kpi" style="border-top:2px solid var(--green)">
+  h += `<div class="kpi-grid" style="margin-bottom:18px;grid-template-columns:repeat(5,1fr)">
+    <div class="kpi compact"><div class="kpi-icon">📥</div><div class="kpi-label">Kg ingresados</div><div class="kpi-val">${fn(totKgI,0)}</div><div class="kpi-sub">kg al entrar al corral</div></div>
+    <div class="kpi compact"><div class="kpi-icon">⚖️</div><div class="kpi-label">Kg vendidos</div><div class="kpi-val">${fn(totKgV,0)}</div><div class="kpi-sub">kg totales egresados</div></div>
+    <div class="kpi compact"><div class="kpi-icon">🐄</div><div class="kpi-label">Kg en stock</div><div class="kpi-val">${fn(totKgStk,0)}</div><div class="kpi-sub">${fn(totAn,0)} animales · última pesada</div></div>
+    <div class="kpi compact"><div class="kpi-icon">📊</div><div class="kpi-label">Kg ganados</div><div class="kpi-val kpi-pos">${fn(totKgG,0)}</div><div class="kpi-sub">${(() => { const vend = CORRALES.reduce((s,c)=>s+totIng(c.id)-stockNow(c.id),0); const ganXAnimal = CORRALES.map(c=>{ const p=(S.pesadas||[]).filter(x=>x.cid===c.id).sort((a,b)=>a.fecha.localeCompare(b.fecha)); const i2=S.ingresos.filter(x=>x.cid===c.id); const t=i2.reduce((s,x)=>s+Number(x.cant),0); const kp=t>0?i2.reduce((s,x)=>s+Number(x.cant)*Number(x.kg),0)/t:0; return p.length&&kp>0?Number(p[p.length-1].kg)-kp:null; }).filter(x=>x!==null); return ganXAnimal.length>0 ? fn(ganXAnimal.reduce((s,x)=>s+x,0)/ganXAnimal.length,1)+' kg gan./animal (prom.)' : 'sin pesadas'; })()}</div></div>
+    <div class="kpi compact">
       <div class="kpi-icon">📈</div>
       <div class="kpi-label">Ganancia diaria prom.</div>
       <div class="kpi-val kpi-pos">${ganDiariaProm!==null?fn(ganDiariaProm,3)+' kg/día':'—'}</div>
