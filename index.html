@@ -157,6 +157,8 @@ body { font-family: var(--sans); background: var(--bg3); color: var(--text); fon
 .sidebar-brand .farm-sub { font-size: 11px; color: #a39a89; margin-top: 3px; }
 .btn-inicio-sidebar { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700; color: #fff; text-decoration: none; background: var(--green); border: none; border-radius: 20px; padding: 8px 18px; transition: all .15s; letter-spacing: .01em; }
 .btn-inicio-sidebar:hover { background: var(--green-dark); }
+.btn-logout-sidebar { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; color: #a39a89; text-decoration: none; border: none; background: none; cursor: pointer; font-family: inherit; padding: 0; transition: color .15s; }
+.btn-logout-sidebar:hover { color: #fff; }
 .sidebar-nav { padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .snav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: var(--radius); color: #cfcbc0; font-size: 13px; background: transparent; border: none; cursor: pointer; width: 100%; text-align: left; font-family: inherit; transition: all .15s; }
 .snav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
@@ -1572,6 +1574,7 @@ function buildApp() {
         <div class="farm-name">Agroganadera Los Médanos</div>
         <div class="farm-sub">Gestión de corrales</div>
         <a href="https://agroganaderalosmedanos.github.io/" class="btn-inicio-sidebar">← Inicio</a>
+        <br><button class="btn-logout-sidebar" onclick="loginClear()">⎋ Cerrar sesión</button>
       </div>
       <div class="sidebar-nav">
         ${nav.map(p => `<button class="snav-item ${S.page===p.k?'active':''}" data-page="${p.k}">${p.icon} ${p.l}</button>`).join('')}
