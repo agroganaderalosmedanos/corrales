@@ -723,7 +723,7 @@
   ],
   "preciosStock": {
     "1": 4300,
-    "2": 6000,
+    "2": 4300,
     "3": 4300
   },
   "pesoObjetivo": {
@@ -773,6 +773,11 @@
       "id": "mqblhp52trfrhlbheh8",
       "fecha": "2026-06-01",
       "valor": 1395
+    },
+    {
+      "id": "mqoc9w6uv1rcwvyizud",
+      "fecha": "2026-06-17",
+      "valor": 1460
     }
   ],
   "preciosAlim": [
@@ -841,5 +846,5 @@
       "obs": ""
     }
   ],
-  "moneda": "ARS"
+  "moneda": "USD"
 }
