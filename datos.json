@@ -82,7 +82,7 @@
       "importeTotal": 67240
     },
     {
-      "id": "mqpri2xkz82mmt0uv7",
+      "id": "mqprjl8lkwxitsee4g",
       "cid": 2,
       "fecha": "2026-06-23",
       "tipo": "frigorifico",
@@ -90,7 +90,7 @@
       "kg": 520,
       "comprador": "Frigorifico Azul",
       "precioPactado": 7800,
-      "obs": "Precio por kilo de carne",
+      "obs": "Precio por kg de carne",
       "baja": false,
       "liquidado": false,
       "precio": 7800
