@@ -80,20 +80,6 @@
       "desbaste": 0,
       "precioLiq": 4595,
       "importeTotal": 67240
-    },
-    {
-      "id": "mqprjl8lkwxitsee4g",
-      "cid": 2,
-      "fecha": "2026-06-23",
-      "tipo": "frigorifico",
-      "cant": 33,
-      "kg": 520,
-      "comprador": "Frigorifico Azul",
-      "precioPactado": 7800,
-      "obs": "Precio por kg de carne",
-      "baja": false,
-      "liquidado": false,
-      "precio": 7800
     }
   ],
   "consumos": [
@@ -787,11 +773,6 @@
       "id": "mqblhp52trfrhlbheh8",
       "fecha": "2026-06-01",
       "valor": 1395
-    },
-    {
-      "id": "auto_2026-06-23",
-      "fecha": "2026-06-23",
-      "valor": 1481.79
     }
   ],
   "preciosAlim": [
